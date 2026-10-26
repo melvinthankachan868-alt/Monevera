@@ -1,0 +1,22 @@
+{
+  "name": "Money Vault",
+  "short_name": "Money Vault",
+  "description": "Secure Your Money. Master Your Future.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B132B",
+  "theme_color": "#0B132B",
+  "icons": [
+    {
+      "src": "/brand/money-vault-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/brand/money-vault-favicon.svg",
+      "sizes": "48x48 72x72 96x96 144x144 192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

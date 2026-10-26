@@ -1,0 +1,595 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "Income": {
+      "title": "Income",
+      "description": "Real income entries for the user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "source": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "amount", "source", "type", "date"]
+    },
+    "Allowance": {
+      "title": "Allowance",
+      "description": "Separate allowance benefits (Travel, Food, Housing, etc.)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 32 },
+        "recurring": { "type": "boolean" },
+        "frequency": { "type": "string", "maxLength": 32 },
+        "source": { "type": "string", "maxLength": 128 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "amount", "type", "date"]
+    },
+    "Bonus": {
+      "title": "Bonus",
+      "description": "Variable bonuses and extra non-salary income",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 32 },
+        "source": { "type": "string", "maxLength": 128 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "amount", "type", "date"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Real expense transactions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "category": { "type": "string", "maxLength": 64 },
+        "subcategory": { "type": "string", "maxLength": 128 },
+        "paymentMethod": { "type": "string", "maxLength": 64 },
+        "note": { "type": "string", "maxLength": 512 },
+        "date": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "amount", "category", "subcategory", "date"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "Subcategory monthly budget limits",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "month": { "type": "string", "maxLength": 16 },
+        "category": { "type": "string", "maxLength": 64 },
+        "subcategory": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "month", "category", "subcategory", "amount"]
+    },
+    "MoneyOwed": {
+      "title": "MoneyOwed",
+      "description": "Informal personal money lent (to receive) or borrowed (to repay)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["lent", "borrowed"] },
+        "personName": { "type": "string", "maxLength": 128 },
+        "originalAmount": { "type": "number" },
+        "amountSettled": { "type": "number" },
+        "remainingAmount": { "type": "number" },
+        "dateGivenOrBorrowed": { "type": "string", "maxLength": 32 },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "description": { "type": "string", "maxLength": 512 },
+        "paymentMethod": { "type": "string", "maxLength": 64 },
+        "note": { "type": "string", "maxLength": 512 },
+        "status": { "type": "string", "maxLength": 32 },
+        "reminderEnabled": { "type": "boolean" },
+        "reminderDaysBefore": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "type", "personName", "originalAmount", "remainingAmount", "dueDate", "status"]
+    },
+    "MoneyOwedPayment": {
+      "title": "MoneyOwedPayment",
+      "description": "Payment installment history on money owed record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "moneyOwedId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "maxLength": 32 },
+        "paymentMethod": { "type": "string", "maxLength": 64 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "moneyOwedId", "amount", "date"]
+    },
+    "Loan": {
+      "title": "Loan",
+      "description": "Formal loans, vehicle loans, education debt and liabilities",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "originalAmount": { "type": "number" },
+        "outstandingAmount": { "type": "number" },
+        "interestRate": { "type": "number" },
+        "emiAmount": { "type": "number" },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "frequency": { "type": "string", "maxLength": 32 },
+        "startDate": { "type": "string", "maxLength": 32 },
+        "endDate": { "type": "string", "maxLength": 32 },
+        "nextPaymentDate": { "type": "string", "maxLength": 32 },
+        "reminderEnabled": { "type": "boolean" },
+        "status": { "type": "string", "maxLength": 32 },
+        "notes": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "type", "originalAmount", "outstandingAmount", "emiAmount", "nextPaymentDate"]
+    },
+    "LoanPayment": {
+      "title": "LoanPayment",
+      "description": "Repayment log entry on loan liability",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "loanId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "principalPortion": { "type": "number" },
+        "interestPortion": { "type": "number" },
+        "date": { "type": "string", "maxLength": 32 },
+        "paymentMethod": { "type": "string", "maxLength": 64 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "loanId", "amount", "date"]
+    },
+    "FinancialReminder": {
+      "title": "FinancialReminder",
+      "description": "General financial obligation reminder (Rent, Bill, EMI, Insurance, etc.)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "frequency": { "type": "string", "maxLength": 32 },
+        "recurrenceEndDate": { "type": "string", "maxLength": 32 },
+        "reminderEnabled": { "type": "boolean" },
+        "reminderDaysBefore": { "type": "number" },
+        "notificationChannels": { "type": "string", "maxLength": 32 },
+        "status": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "title", "type", "amount", "dueDate", "status"]
+    },
+    "Bill": {
+      "title": "Bill",
+      "description": "Utility and recurring expense bills",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 64 },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "paid": { "type": "boolean" },
+        "recurring": { "type": "boolean" },
+        "frequency": { "type": "string", "maxLength": 32 },
+        "paymentDate": { "type": "string", "maxLength": 32 },
+        "reminderEnabled": { "type": "boolean" },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "category", "amount", "dueDate", "paid"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Recurring software, OTT and membership subscriptions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "frequency": { "type": "string", "maxLength": 32 },
+        "nextBillingDate": { "type": "string", "maxLength": 32 },
+        "category": { "type": "string", "maxLength": 64 },
+        "paymentMethod": { "type": "string", "maxLength": 64 },
+        "reminderEnabled": { "type": "boolean" },
+        "isActive": { "type": "boolean" },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "amount", "frequency", "nextBillingDate", "isActive"]
+    },
+    "EmergencyFund": {
+      "title": "EmergencyFund",
+      "description": "User Emergency Fund setup and target parameters",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "essentialMonthlyExpenses": { "type": "number" },
+        "targetMonths": { "type": "number" },
+        "currentAmount": { "type": "number" },
+        "monthlyContributionPlan": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "essentialMonthlyExpenses", "targetMonths", "currentAmount"]
+    },
+    "EmergencyFundContribution": {
+      "title": "EmergencyFundContribution",
+      "description": "Emergency Fund contribution and withdrawal records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal"] },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "maxLength": 32 },
+        "associatedExpenseId": { "type": "string", "maxLength": 128 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "type", "amount", "date"]
+    },
+    "Transfer": {
+      "title": "Transfer",
+      "description": "Internal non-expense fund transfer between accounts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "fromAccount": { "type": "string", "maxLength": 128 },
+        "toAccount": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "fromAccount", "toAccount", "amount", "date"]
+    },
+    "FinancialAccount": {
+      "title": "FinancialAccount",
+      "description": "User cash, bank and card accounts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "balance": { "type": "number" },
+        "institution": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "type", "balance"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "Logged notification and alert delivery records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "maxLength": 32 },
+        "reason": { "type": "string", "maxLength": 256 },
+        "status": { "type": "string", "maxLength": 32 },
+        "channel": { "type": "string", "maxLength": 32 },
+        "read": { "type": "boolean" },
+        "resolved": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "title", "status", "read", "resolved"]
+    },
+    "Savings": {
+      "title": "Savings",
+      "description": "Savings deposits and reserve allocations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 32 },
+        "accountName": { "type": "string", "maxLength": 128 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "amount", "type", "date", "accountName"]
+    },
+    "Investment": {
+      "title": "Investment",
+      "description": "Asset portfolio items and SIPs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "amountInvested": { "type": "number" },
+        "currentValue": { "type": "number" },
+        "units": { "type": "number" },
+        "date": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "type", "amountInvested", "currentValue", "date"]
+    },
+    "Goal": {
+      "title": "Goal",
+      "description": "Financial goals and target savings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 64 },
+        "targetAmount": { "type": "number" },
+        "currentAmount": { "type": "number" },
+        "targetDate": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "targetAmount", "currentAmount", "targetDate"]
+    },
+    "Subcategory": {
+      "title": "Subcategory",
+      "description": "Custom user categories/subcategories",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 64 },
+        "iconName": { "type": "string", "maxLength": 64 },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "name", "category"]
+    },
+    "RecurringTransaction": {
+      "title": "RecurringTransaction",
+      "description": "Recurring income and expense schedules",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "kind": { "type": "string", "maxLength": 32 },
+        "category": { "type": "string", "maxLength": 64 },
+        "subcategory": { "type": "string", "maxLength": 128 },
+        "frequency": { "type": "string", "maxLength": 32 },
+        "startDate": { "type": "string", "maxLength": 32 },
+        "endDate": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 512 },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "title", "amount", "kind", "category", "subcategory", "frequency", "startDate"]
+    },
+    "Alert": {
+      "title": "Alert",
+      "description": "User-configured financial threshold alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "metric": { "type": "string", "maxLength": 64 },
+        "condition": { "type": "string", "maxLength": 32 },
+        "threshold": { "type": "number" },
+        "alertType": { "type": "string", "maxLength": 32 },
+        "emailAddress": { "type": "string", "maxLength": 256 },
+        "enabled": { "type": "boolean" },
+        "cooldownHours": { "type": "number" },
+        "status": { "type": "string", "maxLength": 32 },
+        "lastTriggeredAt": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "metric", "condition", "threshold", "enabled"]
+    },
+    "AlertHistory": {
+      "title": "AlertHistory",
+      "description": "Historical log of triggered threshold events",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "alertId": { "type": "string", "maxLength": 128 },
+        "alertName": { "type": "string", "maxLength": 128 },
+        "triggeredAt": { "type": "number" },
+        "metricValue": { "type": "number" },
+        "threshold": { "type": "number" },
+        "status": { "type": "string", "maxLength": 32 },
+        "notificationStatus": { "type": "string", "maxLength": 64 },
+        "emailAddress": { "type": "string", "maxLength": 256 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "ownerId", "alertId", "triggeredAt", "metricValue", "threshold"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "User preferences and budget split percentages",
+      "type": "object",
+      "properties": {
+        "currency": { "type": "string", "maxLength": 16 },
+        "monthlyIncome": { "type": "number" },
+        "monthlySalary": { "type": "number" },
+        "needsPercentage": { "type": "number" },
+        "wantsPercentage": { "type": "number" },
+        "savingsPercentage": { "type": "number" },
+        "onboardingCompleted": { "type": "boolean" },
+        "firstDayOfWeek": { "type": "string", "maxLength": 16 },
+        "defaultCategory": { "type": "string", "maxLength": 32 },
+        "defaultPaymentMethod": { "type": "string", "maxLength": 32 },
+        "largeExpenseThreshold": { "type": "number" },
+        "unusualSpendingEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["currency", "needsPercentage", "wantsPercentage", "savingsPercentage"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User account root document"
+    },
+    "/users/{userId}/income/{incomeId}": {
+      "schema": "Income",
+      "description": "User income records"
+    },
+    "/users/{userId}/allowances/{allowanceId}": {
+      "schema": "Allowance",
+      "description": "Separate allowance benefits"
+    },
+    "/users/{userId}/bonuses/{bonusId}": {
+      "schema": "Bonus",
+      "description": "Variable bonuses and extra non-salary income"
+    },
+    "/users/{userId}/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "User expense records"
+    },
+    "/users/{userId}/budgets/{budgetId}": {
+      "schema": "Budget",
+      "description": "User monthly budget limits"
+    },
+    "/users/{userId}/moneyOwed/{recordId}": {
+      "schema": "MoneyOwed",
+      "description": "User money lent or borrowed records"
+    },
+    "/users/{userId}/moneyOwed/{recordId}/payments/{paymentId}": {
+      "schema": "MoneyOwedPayment",
+      "description": "Installment payments on money owed"
+    },
+    "/users/{userId}/loans/{loanId}": {
+      "schema": "Loan",
+      "description": "User debts and loans"
+    },
+    "/users/{userId}/loanPayments/{paymentId}": {
+      "schema": "LoanPayment",
+      "description": "User loan repayment records"
+    },
+    "/users/{userId}/bills/{billId}": {
+      "schema": "Bill",
+      "description": "User bills and utility payments"
+    },
+    "/users/{userId}/subscriptions/{subscriptionId}": {
+      "schema": "Subscription",
+      "description": "User recurring subscriptions"
+    },
+    "/users/{userId}/emergencyFund/{recordId}": {
+      "schema": "EmergencyFund",
+      "description": "User emergency fund parameters"
+    },
+    "/users/{userId}/emergencyFund/contributions/{contributionId}": {
+      "schema": "EmergencyFundContribution",
+      "description": "Emergency fund deposits and withdrawals"
+    },
+    "/users/{userId}/financialReminders/{reminderId}": {
+      "schema": "FinancialReminder",
+      "description": "General financial obligation reminders"
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "AppNotification",
+      "description": "Logged alert notifications"
+    },
+    "/users/{userId}/transfers/{transferId}": {
+      "schema": "Transfer",
+      "description": "Internal fund transfers"
+    },
+    "/users/{userId}/accounts/{accountId}": {
+      "schema": "FinancialAccount",
+      "description": "User manual account balances"
+    },
+    "/users/{userId}/savings/{savingId}": {
+      "schema": "Savings",
+      "description": "User savings allocations"
+    },
+    "/users/{userId}/investments/{investmentId}": {
+      "schema": "Investment",
+      "description": "User investment holdings"
+    },
+    "/users/{userId}/goals/{goalId}": {
+      "schema": "Goal",
+      "description": "User financial goals"
+    },
+    "/users/{userId}/subcategories/{subcategoryId}": {
+      "schema": "Subcategory",
+      "description": "User custom subcategories"
+    },
+    "/users/{userId}/recurringTransactions/{transactionId}": {
+      "schema": "RecurringTransaction",
+      "description": "User recurring schedules"
+    },
+    "/users/{userId}/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "User financial monitoring alerts"
+    },
+    "/users/{userId}/alertHistory/{historyId}": {
+      "schema": "AlertHistory",
+      "description": "Triggered alert audit records"
+    },
+    "/users/{userId}/settings/{settingId}": {
+      "schema": "AppSettings",
+      "description": "User app preferences"
+    }
+  }
+}

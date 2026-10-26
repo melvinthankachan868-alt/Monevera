@@ -1,0 +1,493 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidIncome(data, userId) {
+      return data.ownerId == userId &&
+        data.amount is number && data.amount >= 0 &&
+        data.source is string && data.source.size() <= 128 &&
+        data.type is string && data.type.size() <= 64 &&
+        data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidAllowance(data, userId) {
+      return data.ownerId == userId &&
+        data.amount is number && data.amount >= 0 &&
+        data.name is string && data.name.size() <= 128 &&
+        data.type is string && data.type.size() <= 64 &&
+        data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidBonus(data, userId) {
+      return data.ownerId == userId &&
+        data.amount is number && data.amount >= 0 &&
+        data.name is string && data.name.size() <= 128 &&
+        data.type is string && data.type.size() <= 64 &&
+        data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidExpense(data, userId) {
+      return data.ownerId == userId &&
+        data.amount is number && data.amount >= 0 &&
+        data.category is string && data.category.size() <= 64 &&
+        data.subcategory is string && data.subcategory.size() <= 128 &&
+        data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidBudget(data, userId) {
+      return data.ownerId == userId &&
+        data.amount is number && data.amount >= 0 &&
+        data.month is string && data.month.size() <= 16 &&
+        data.category is string && data.category.size() <= 64 &&
+        data.subcategory is string && data.subcategory.size() <= 128;
+    }
+
+    function isValidMoneyOwed(data, userId) {
+      return data.ownerId == userId &&
+        data.type in ['lent', 'borrowed'] &&
+        data.personName is string && data.personName.size() <= 128 &&
+        data.originalAmount is number && data.originalAmount >= 0 &&
+        data.remainingAmount is number && data.remainingAmount >= 0 &&
+        data.dueDate is string && data.dueDate.size() <= 32;
+    }
+
+    function isValidLoan(data, userId) {
+      return data.ownerId == userId &&
+        data.name is string && data.name.size() <= 128 &&
+        data.originalAmount is number && data.originalAmount >= 0 &&
+        data.outstandingAmount is number && data.outstandingAmount >= 0 &&
+        data.emiAmount is number && data.emiAmount >= 0;
+    }
+
+    function isValidReminder(data, userId) {
+      return data.ownerId == userId &&
+        data.title is string && data.title.size() <= 128 &&
+        data.amount is number && data.amount >= 0 &&
+        data.dueDate is string && data.dueDate.size() <= 32;
+    }
+
+    function isValidBill(data, userId) {
+      return data.ownerId == userId &&
+        data.name is string && data.name.size() <= 128 &&
+        data.amount is number && data.amount >= 0 &&
+        data.dueDate is string && data.dueDate.size() <= 32;
+    }
+
+    function isValidSubscription(data, userId) {
+      return data.ownerId == userId &&
+        data.name is string && data.name.size() <= 128 &&
+        data.amount is number && data.amount >= 0 &&
+        data.nextBillingDate is string && data.nextBillingDate.size() <= 32;
+    }
+
+    function isValidSavings(data, userId) {
+      return data.ownerId == userId &&
+        data.amount is number && data.amount >= 0 &&
+        data.type is string && data.type.size() <= 64 &&
+        data.accountName is string && data.accountName.size() <= 128 &&
+        data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidInvestment(data, userId) {
+      return data.ownerId == userId &&
+        data.name is string && data.name.size() <= 128 &&
+        data.type is string && data.type.size() <= 64 &&
+        data.amountInvested is number && data.amountInvested >= 0 &&
+        data.currentValue is number && data.currentValue >= 0 &&
+        data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidGoal(data, userId) {
+      return data.ownerId == userId &&
+        data.name is string && data.name.size() <= 128 &&
+        data.targetAmount is number && data.targetAmount >= 0 &&
+        data.currentAmount is number && data.currentAmount >= 0 &&
+        data.targetDate is string && data.targetDate.size() <= 32;
+    }
+
+    function isValidSubcategory(data, userId) {
+      return data.ownerId == userId &&
+        data.name is string && data.name.size() <= 128 &&
+        data.category is string && data.category.size() <= 64;
+    }
+
+    function isValidAlert(data, userId) {
+      return data.ownerId == userId &&
+        data.metric is string && data.metric.size() <= 64 &&
+        data.condition is string && data.condition.size() <= 32 &&
+        data.threshold is number &&
+        data.enabled is bool;
+    }
+
+    // User root profile document
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create, update: if isOwner(userId) && isValidId(userId);
+      allow delete: if isOwner(userId);
+
+      // Income subcollection
+      match /income/{incomeId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(incomeId) && incoming().ownerId == userId && isValidIncome(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(incomeId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidIncome(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Allowances subcollection
+      match /allowances/{allowanceId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(allowanceId) && incoming().ownerId == userId && isValidAllowance(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(allowanceId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidAllowance(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Bonuses subcollection
+      match /bonuses/{bonusId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(bonusId) && incoming().ownerId == userId && isValidBonus(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(bonusId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidBonus(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Expenses subcollection
+      match /expenses/{expenseId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(expenseId) && incoming().ownerId == userId && isValidExpense(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(expenseId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidExpense(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Budgets subcollection
+      match /budgets/{budgetId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(budgetId) && incoming().ownerId == userId && isValidBudget(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(budgetId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidBudget(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Money Owed subcollection
+      match /moneyOwed/{recordId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(recordId) && incoming().ownerId == userId && isValidMoneyOwed(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(recordId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidMoneyOwed(incoming(), userId);
+        allow delete: if isOwner(userId);
+
+        match /payments/{paymentId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isValidId(paymentId) && incoming().amount is number && incoming().amount >= 0;
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      // Loans subcollection
+      match /loans/{loanId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(loanId) && incoming().ownerId == userId && isValidLoan(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(loanId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidLoan(incoming(), userId);
+        allow delete: if isOwner(userId);
+
+        match /payments/{paymentId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isValidId(paymentId) && incoming().amount is number && incoming().amount >= 0;
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      // Bills subcollection
+      match /bills/{billId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(billId) && incoming().ownerId == userId && isValidBill(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(billId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidBill(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Subscriptions subcollection
+      match /subscriptions/{subscriptionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(subscriptionId) && incoming().ownerId == userId && isValidSubscription(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(subscriptionId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidSubscription(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Emergency Fund subcollection
+      match /emergencyFund/{recordId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(recordId) && incoming().ownerId == userId;
+        allow delete: if isOwner(userId);
+
+        match /contributions/{contribId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isValidId(contribId) && incoming().amount is number && incoming().amount >= 0;
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      // Financial Reminders subcollection
+      match /financialReminders/{reminderId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(reminderId) && incoming().ownerId == userId && isValidReminder(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(reminderId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidReminder(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Notifications subcollection
+      match /notifications/{notifId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(notifId) && incoming().ownerId == userId;
+        allow delete: if isOwner(userId);
+      }
+
+      // Transfers subcollection
+      match /transfers/{transferId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(transferId) && incoming().ownerId == userId && incoming().amount is number && incoming().amount >= 0;
+        allow delete: if isOwner(userId);
+      }
+
+      // Accounts subcollection
+      match /accounts/{accId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(accId) && incoming().ownerId == userId && incoming().balance is number;
+        allow delete: if isOwner(userId);
+      }
+
+      // Savings subcollection
+      match /savings/{savingId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(savingId) && incoming().ownerId == userId && isValidSavings(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(savingId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidSavings(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Investments subcollection
+      match /investments/{investmentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(investmentId) && incoming().ownerId == userId && isValidInvestment(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(investmentId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidInvestment(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Goals subcollection
+      match /goals/{goalId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(goalId) && incoming().ownerId == userId && isValidGoal(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(goalId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidGoal(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Subcategories subcollection
+      match /subcategories/{subcategoryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(subcategoryId) && incoming().ownerId == userId && isValidSubcategory(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(subcategoryId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidSubcategory(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Recurring transactions subcollection
+      match /recurringTransactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(transactionId) && incoming().ownerId == userId;
+        allow delete: if isOwner(userId);
+      }
+
+      // Alerts subcollection
+      match /alerts/{alertId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(alertId) && incoming().ownerId == userId && isValidAlert(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(alertId) && incoming().ownerId == existing().ownerId && incoming().ownerId == userId && isValidAlert(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Alert history subcollection
+      match /alertHistory/{historyId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(historyId) && incoming().ownerId == userId;
+        allow delete: if isOwner(userId);
+      }
+
+      // Settings subcollection
+      match /settings/{settingId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(settingId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Research Watchlist subcollection
+      match /researchWatchlist/{ticker} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Research Alerts subcollection
+      match /researchAlerts/{alertId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Group Expense Splitting & Settlements subcollections (Personal sync)
+      match /splitGroups/{groupId} {
+        allow read, write: if isOwner(userId);
+
+        match /expenses/{expenseId} {
+          allow read, write: if isOwner(userId);
+        }
+
+        match /settlements/{settlementId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+    }
+
+    // ========================================================
+    // SHARED COLLABORATIVE GROUP WORKSPACES (Multi-User)
+    // ========================================================
+    function isGroupMember(groupId) {
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/groups/$(groupId)) &&
+         (request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberUids ||
+          get(/databases/$(database)/documents/groups/$(groupId)).data.ownerId == request.auth.uid))
+      );
+    }
+
+    function isGroupOwner(groupId) {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/groups/$(groupId)) &&
+        get(/databases/$(database)/documents/groups/$(groupId)).data.ownerId == request.auth.uid
+      );
+    }
+
+    match /groups/{groupId} {
+      // Members can read; owner or memberUids
+      allow read: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid ||
+        (request.auth.uid in resource.data.memberUids)
+      );
+
+      // Create group: creator must be owner and included in memberUids
+      allow create: if isSignedIn() && isValidId(groupId) &&
+        incoming().ownerId == request.auth.uid &&
+        (request.auth.uid in incoming().memberUids);
+
+      // Update group:
+      // 1. Group owner can update group settings and member list
+      // 2. Member can leave group by removing ONLY their own uid from memberUids
+      allow update: if isSignedIn() && isValidId(groupId) && (
+        isGroupOwner(groupId) ||
+        (
+          incoming().ownerId == existing().ownerId &&
+          (request.auth.uid in existing().memberUids) &&
+          !(request.auth.uid in incoming().memberUids) &&
+          existing().memberUids.hasAll(incoming().memberUids) &&
+          incoming().memberUids.size() == existing().memberUids.size() - 1 &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'updatedAt'])
+        )
+      );
+
+      // Delete group: owner only
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+
+      // Group Members subcollection
+      match /members/{memberId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupOwner(groupId) && isValidId(memberId);
+        allow update: if isSignedIn() && isValidId(memberId) &&
+          incoming().uid == existing().uid && (
+            isGroupOwner(groupId) ||
+            request.auth.uid == memberId
+          );
+        allow delete: if isGroupOwner(groupId) || (isGroupMember(groupId) && resource.data.uid == request.auth.uid);
+      }
+
+      // Group Expenses subcollection
+      match /expenses/{expenseId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId) && isValidId(expenseId) &&
+          incoming().createdBy == request.auth.uid &&
+          incoming().amount is number && incoming().amount >= 0;
+        allow update: if isGroupMember(groupId) && isValidId(expenseId) &&
+          incoming().createdBy == existing().createdBy &&
+          incoming().amount is number && incoming().amount >= 0 && (
+            existing().createdBy == request.auth.uid ||
+            isGroupOwner(groupId)
+          );
+        allow delete: if isGroupMember(groupId) && (
+          existing().createdBy == request.auth.uid ||
+          isGroupOwner(groupId)
+        );
+      }
+
+      // Group Settlements subcollection
+      match /settlements/{settlementId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId) && isValidId(settlementId) &&
+          incoming().recordedBy == request.auth.uid &&
+          incoming().amount is number && incoming().amount >= 0;
+        allow update: if isGroupMember(groupId) && isValidId(settlementId) &&
+          incoming().recordedBy == existing().recordedBy &&
+          incoming().amount is number && incoming().amount >= 0 && (
+            existing().recordedBy == request.auth.uid ||
+            isGroupOwner(groupId)
+          );
+        allow delete: if isGroupMember(groupId) && (
+          existing().recordedBy == request.auth.uid ||
+          isGroupOwner(groupId)
+        );
+      }
+
+      // Group Activity subcollection
+      match /activity/{activityId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId) && isValidId(activityId);
+        allow update, delete: if isGroupOwner(groupId);
+      }
+
+      // Group Invitations subcollection (inside group)
+      match /invitations/{invitationId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupOwner(groupId) && isValidId(invitationId) &&
+          incoming().groupId == groupId;
+        allow update: if isGroupOwner(groupId) && isValidId(invitationId) &&
+          incoming().groupId == existing().groupId;
+        allow delete: if isGroupOwner(groupId);
+      }
+    }
+
+    // Secured Group Invitation Lookup by Token
+    match /groupInvitations/{token} {
+      // Get-only read for authenticated users; no public list queries
+      allow get: if isSignedIn();
+      allow list: if false;
+      // Writes strictly limited to group owner
+      allow create: if isSignedIn() && isValidId(token) &&
+        exists(/databases/$(database)/documents/groups/$(incoming().groupId)) &&
+        get(/databases/$(database)/documents/groups/$(incoming().groupId)).data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && isValidId(token) &&
+        exists(/databases/$(database)/documents/groups/$(existing().groupId)) &&
+        get(/databases/$(database)/documents/groups/$(existing().groupId)).data.ownerId == request.auth.uid;
+    }
+  }
+}
+

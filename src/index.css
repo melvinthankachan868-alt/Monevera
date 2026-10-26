@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mv-bg-primary: var(--mv-bg-primary);
+  --color-mv-bg-secondary: var(--mv-bg-secondary);
+  --color-mv-bg-tertiary: var(--mv-bg-tertiary);
+  --color-mv-surface: var(--mv-surface);
+  --color-mv-surface-hover: var(--mv-surface-hover);
+  --color-mv-surface-elevated: var(--mv-surface-elevated);
+  --color-mv-border: var(--mv-border);
+  --color-mv-border-subtle: var(--mv-border-subtle);
+  --color-mv-border-strong: var(--mv-border-strong);
+  --color-mv-primary: var(--mv-primary);
+  --color-mv-primary-hover: var(--mv-primary-hover);
+  --color-mv-green: var(--mv-green);
+  --color-mv-teal: var(--mv-teal);
+  --color-mv-cyan: var(--mv-cyan);
+  --color-mv-amber: var(--mv-amber);
+  --color-mv-warning: var(--mv-warning);
+  --color-mv-danger: var(--mv-danger);
+  --color-mv-violet: var(--mv-violet);
+  --color-mv-text-primary: var(--mv-text-primary);
+  --color-mv-text-secondary: var(--mv-text-secondary);
+  --color-mv-text-muted: var(--mv-text-muted);
+  --color-mv-text-disabled: var(--mv-text-disabled);
+}
+
+:root {
+  /* ========================================================
+     MONEY VAULT DESIGN TOKENS (DARK THEME - DEFAULT)
+     Near-black background, charcoal surfaces, bright lime accent
+  ======================================================== */
+  --mv-bg-primary: #0B0D0C;
+  --mv-bg-secondary: #101311;
+  --mv-bg-tertiary: #151916;
+
+  --mv-surface: #141816;
+  --mv-surface-hover: #1A1F1B;
+  --mv-surface-elevated: #1C211D;
+
+  --mv-border: #252B27;
+  --mv-border-subtle: #1D231F;
+  --mv-border-strong: #343C36;
+
+  --mv-primary: #A8F34A;
+  --mv-primary-hover: #B8FF62;
+  --mv-primary-text: #0B0D0C;
+  --mv-primary-soft: rgba(168, 243, 74, 0.12);
+  --mv-primary-glow: rgba(168, 243, 74, 0.2);
+
+  --mv-green: #78D64B;
+  --mv-green-soft: rgba(120, 214, 75, 0.12);
+
+  --mv-teal: #55E0C1;
+  --mv-teal-soft: rgba(85, 224, 193, 0.12);
+
+  --mv-cyan: #64D8FF;
+  --mv-cyan-soft: rgba(100, 216, 255, 0.12);
+
+  --mv-amber: #F4D35E;
+  --mv-amber-soft: rgba(244, 211, 94, 0.12);
+  --mv-warning: #FFB84D;
+  --mv-warning-soft: rgba(255, 184, 77, 0.12);
+
+  --mv-danger: #FF7373;
+  --mv-danger-soft: rgba(255, 115, 115, 0.12);
+
+  --mv-violet: #C084FC;
+  --mv-violet-soft: rgba(192, 132, 252, 0.12);
+
+  --mv-text-primary: #F4F7F3;
+  --mv-text-secondary: #A8B0AA;
+  --mv-text-muted: #69716B;
+  --mv-text-disabled: #464D48;
+
+  --mv-income: #78D64B;
+  --mv-expense: #FF7373;
+  --mv-saving: #78D64B;
+  --mv-investment: #64D8FF;
+  --mv-loan: #FF7373;
+  --mv-receivable: #78D64B;
+  --mv-payable: #F4D35E;
+  --mv-emergency: #55E0C1;
+  --mv-goal: #C084FC;
+}
+
+:root[data-theme='light'],
+html[data-theme='light'],
+body.light,
+.light {
+  /* ========================================================
+     MONEY VAULT DESIGN TOKENS (LIGHT/DAY THEME)
+     Clean neutral #F5F7F4, #FFFFFF surfaces, high-contrast dark text
+  ======================================================== */
+  --mv-bg-primary: #F5F7F4;
+  --mv-bg-secondary: #F0F3EF;
+  --mv-bg-tertiary: #E8ECE6;
+
+  --mv-surface: #FFFFFF;
+  --mv-surface-hover: #F8FAF7;
+  --mv-surface-elevated: #FFFFFF;
+
+  --mv-border: #D9DED8;
+  --mv-border-subtle: #E6EBE5;
+  --mv-border-strong: #BDC6BC;
+
+  --mv-primary: #15803D;
+  --mv-primary-hover: #166534;
+  --mv-primary-text: #FFFFFF;
+  --mv-primary-soft: rgba(21, 128, 61, 0.1);
+  --mv-primary-glow: rgba(21, 128, 61, 0.2);
+
+  --mv-green: #15803D;
+  --mv-green-soft: rgba(21, 128, 61, 0.1);
+
+  --mv-teal: #0F766E;
+  --mv-teal-soft: rgba(15, 118, 110, 0.1);
+
+  --mv-cyan: #0369A1;
+  --mv-cyan-soft: rgba(3, 105, 161, 0.1);
+
+  --mv-amber: #B45309;
+  --mv-amber-soft: rgba(180, 83, 9, 0.1);
+  --mv-warning: #B45309;
+  --mv-warning-soft: rgba(180, 83, 9, 0.1);
+
+  --mv-danger: #DC2626;
+  --mv-danger-soft: rgba(220, 38, 38, 0.1);
+
+  --mv-violet: #6D28D9;
+  --mv-violet-soft: rgba(109, 40, 217, 0.1);
+
+  --mv-text-primary: #182018;
+  --mv-text-secondary: #4F5951;
+  --mv-text-muted: #69736B;
+  --mv-text-disabled: #8E9990;
+
+  --mv-income: #15803D;
+  --mv-expense: #DC2626;
+  --mv-saving: #15803D;
+  --mv-investment: #0369A1;
+  --mv-loan: #DC2626;
+  --mv-receivable: #15803D;
+  --mv-payable: #B45309;
+  --mv-emergency: #0F766E;
+  --mv-goal: #6D28D9;
+}
+
+body {
+  background-color: var(--mv-bg-primary);
+  color: var(--mv-text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Enforce tabular figures on all numbers and metrics */
+.tabular-nums,
+[data-metric],
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Custom Vault Panels & Cards (Dark Mode Default) */
+.vault-panel {
+  background-color: var(--mv-surface);
+  border: 1px solid var(--mv-border);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vault-panel-highlight {
+  background: linear-gradient(135deg, rgba(168, 243, 74, 0.05) 0%, rgba(20, 24, 22, 0.95) 100%);
+  border: 1px solid rgba(168, 243, 74, 0.25);
+  box-shadow: 0 12px 35px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(168, 243, 74, 0.06);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vault-card {
+  background-color: var(--mv-surface-elevated);
+  border: 1px solid var(--mv-border-subtle);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.vault-card-elevated {
+  background-color: var(--mv-surface-hover);
+  border: 1px solid var(--mv-border);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.6);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Light Theme Overrides for Cards */
+:root[data-theme='light'] .vault-panel,
+html[data-theme='light'] .vault-panel,
+body.light .vault-panel {
+  background-color: #FFFFFF;
+  border-color: #D9DED8;
+  box-shadow: 0 4px 20px -2px rgba(24, 32, 24, 0.05), 0 1px 3px 0 rgba(24, 32, 24, 0.04);
+}
+
+:root[data-theme='light'] .vault-panel-highlight,
+html[data-theme='light'] .vault-panel-highlight,
+body.light .vault-panel-highlight {
+  background: #FFFFFF;
+  border-color: #D9DED8;
+  box-shadow: 0 6px 24px -4px rgba(24, 32, 24, 0.06), 0 0 0 1px rgba(21, 128, 61, 0.08);
+}
+
+:root[data-theme='light'] .vault-card,
+html[data-theme='light'] .vault-card,
+body.light .vault-card {
+  background-color: #FFFFFF;
+  border-color: #D9DED8;
+  box-shadow: 0 1px 4px 0 rgba(24, 32, 24, 0.04);
+}
+
+:root[data-theme='light'] .vault-card-elevated,
+html[data-theme='light'] .vault-card-elevated,
+body.light .vault-card-elevated {
+  background-color: #F0F3EF;
+  border-color: #D9DED8;
+  box-shadow: 0 2px 8px -2px rgba(24, 32, 24, 0.06);
+}
+
+/* Standardized Buttons */
+.btn-primary {
+  background-color: var(--mv-primary);
+  color: #0B0D0C;
+  font-weight: 800;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 0 20px rgba(168, 243, 74, 0.15);
+}
+:root[data-theme='light'] .btn-primary {
+  color: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(21, 128, 61, 0.2);
+}
+.btn-primary:hover {
+  background-color: var(--mv-primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--mv-surface-hover);
+  border: 1px solid var(--mv-border);
+  color: var(--mv-text-primary);
+  font-weight: 700;
+  transition: all 0.15s ease-in-out;
+}
+.btn-secondary:hover {
+  background-color: var(--mv-surface-elevated);
+  border-color: var(--mv-border-strong);
+}
+
+.btn-danger {
+  background-color: var(--mv-danger-soft);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: var(--mv-danger);
+  font-weight: 700;
+  transition: all 0.15s ease-in-out;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--mv-bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mv-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mv-border-strong);
+}

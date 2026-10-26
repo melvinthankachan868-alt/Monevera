@@ -1,0 +1,102 @@
+[
+  {
+    "testId": "OCR-01-CLEAR",
+    "description": "Clear printed Indian Starbucks receipt",
+    "status": 200,
+    "durationMs": 2647,
+    "passed": true,
+    "details": {
+      "merchant": "Starbucks Coffee",
+      "amount": 420,
+      "currency": "INR",
+      "date": "2026-10-14",
+      "time": "11:34",
+      "category": "Food & Dining",
+      "subcategory": "Coffee",
+      "paymentMethod": "UPI",
+      "tax": 20,
+      "items": [
+        {
+          "name": "CAFFE LATTE (S)",
+          "quantity": 1,
+          "price": 250
+        },
+        {
+          "name": "BLUEBERRY MUFFIN",
+          "quantity": 1,
+          "price": 150
+        }
+      ],
+      "notes": "Store #12345, Bengaluru, Karnataka, India",
+      "confidence": "high",
+      "summary": "₹420.00 at Starbucks Coffee for Food & Dining on Oct 14, 2026"
+    },
+    "modelUsed": "gemini-3.5-flash-lite"
+  },
+  {
+    "testId": "OCR-02-UNRELATED",
+    "description": "Unrelated mountain landscape image",
+    "status": 200,
+    "durationMs": 2652,
+    "passed": true,
+    "details": {
+      "merchant": "Not detected",
+      "amount": null,
+      "currency": "USD",
+      "date": "2026-10-19",
+      "time": null,
+      "category": "Needs review",
+      "subcategory": null,
+      "paymentMethod": "Not detected",
+      "tax": null,
+      "items": [],
+      "notes": "No receipt or invoice found in image",
+      "confidence": "low",
+      "summary": "No receipt or invoice was detected in the image."
+    },
+    "modelUsed": "gemini-3.5-flash-lite"
+  },
+  {
+    "testId": "OCR-03-EMPTY",
+    "description": "Empty image string rejection",
+    "status": 400,
+    "passed": true,
+    "error": "Image data is empty."
+  },
+  {
+    "testId": "OCR-04-UNSUPPORTED-MIME",
+    "description": "Unsupported MIME type rejection (PDF)",
+    "status": 400,
+    "passed": true,
+    "error": "Unsupported image format. Please upload a JPEG, PNG, WebP, or HEIC photo."
+  },
+  {
+    "testId": "OCR-05-OVERSIZED",
+    "description": "Oversized payload rejection (>10MB)",
+    "status": 413,
+    "passed": true
+  },
+  {
+    "testId": "OCR-06-MALFORMED",
+    "description": "Malformed payload rejection (Missing imageBase64)",
+    "status": 400,
+    "passed": true,
+    "error": "Missing receipt image data."
+  },
+  {
+    "testId": "OCR-07-CONCURRENT-DEDUP",
+    "description": "Concurrent double-click deduplication returns identical result without multiple Gemini calls",
+    "status": 200,
+    "passed": true,
+    "details": {
+      "d1Duration": 27,
+      "d2Duration": 28
+    }
+  },
+  {
+    "testId": "OCR-08-PERSISTENCE-GATE",
+    "description": "Persistence gate prevents saving null/negative amounts; requires explicit review",
+    "status": 200,
+    "passed": true
+  }
+]

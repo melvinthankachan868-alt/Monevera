@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none">
+  <defs>
+    <linearGradient id="mvll-vault-grad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="50%" stop-color="#1D4ED8"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="mvll-gold-glow" x1="12" y1="12" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="mvll-emerald-accent" x1="16" y1="32" x2="32" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#mvll-vault-grad)" />
+  <rect x="5.5" y="5.5" width="37" height="37" rx="10.5" stroke="#60A5FA" stroke-opacity="0.3" stroke-width="1.5" />
+  <path d="M13 34V16L20 25.5L16.5 30H13V34Z" fill="#FFFFFF" fill-opacity="0.95"/>
+  <path d="M35 34V16L28 25.5L31.5 30H35V34Z" fill="#FFFFFF" fill-opacity="0.95"/>
+  <path d="M24 14L30 25H26L24 21.5L22 25H18L24 14Z" fill="url(#mvll-gold-glow)"/>
+  <path d="M24 23L29 32H25.5L24 29L22.5 32H19L24 23Z" fill="url(#mvll-emerald-accent)"/>
+  <circle cx="24" cy="24" r="2.5" fill="#FFFFFF" />
+  <circle cx="24" cy="24" r="1.2" fill="#0F172A" />
+
+  <text x="56" y="26" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="18" font-weight="800" letter-spacing="-0.02em" fill="#0F172A">
+    MONEY<tspan fill="#2563EB">VAULT</tspan>
+  </text>
+  <text x="56" y="38" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="600" letter-spacing="0.08em" fill="#64748B">
+    SECURE YOUR MONEY. MASTER YOUR FUTURE.
+  </text>
+</svg>

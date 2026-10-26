@@ -1,0 +1,6 @@
+{
+  "name": "Money Vault",
+  "description": "Secure Your Money. Master Your Future. Track income, allowances, bonuses, expenses, budgets, money owed, loans, EMIs, emergency funds, savings, and investments with dynamic calculations, alerts, and AI insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
