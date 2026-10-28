@@ -1,0 +1,35 @@
+name: Firestore rules tests
+
+# Runs the Money Vault rules tests on GitHub's servers (Java is pre-set-up here).
+# Start it from the repo's "Actions" tab -> "Firestore rules tests" -> "Run workflow".
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'tests/rules.emulator.test.mjs'
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund firebase-tools @firebase/rules-unit-testing
+
+      - name: Run rules tests against the Firestore emulator
+        run: >
+          npx firebase emulators:exec --only firestore --project mv-rules-test
+          "node tests/rules.emulator.test.mjs"
