@@ -102,7 +102,7 @@ await t('users: ownerId spoof on create DENIED', () => assertFails(setDoc(doc(as
 await t('users: negative amount DENIED', () => assertFails(setDoc(doc(as('alice'), 'users/alice/expenses/x4'), { ownerId: 'alice', amount: -1, category: 'a', subcategory: 'b', date: 'd' })));
 await t('users: valid expense create ALLOWED', () => assertSucceeds(setDoc(doc(as('alice'), 'users/alice/expenses/x5'), { ownerId: 'alice', amount: 1, category: 'a', subcategory: 'b', date: 'd' })));
 await t('users: ownerId change on update DENIED', () => assertFails(updateDoc(doc(as('alice'), 'users/alice/expenses/x1'), { ownerId: 'bob' })));
-await t('users: 10KB doc ID DENIED', () => assertFails(setDoc(doc(as('alice'), 'users/alice/expenses/' + 'A'.repeat(10000)), { ownerId: 'alice', amount: 1, category: 'a', subcategory: 'b', date: 'd' })));
+await t('users: 200-char doc ID (over the 128 limit) DENIED', () => assertFails(setDoc(doc(as('alice'), 'users/alice/expenses/' + 'A'.repeat(200)), { ownerId: 'alice', amount: 1, category: 'a', subcategory: 'b', date: 'd' })));
 await t('unknown top-level collection DENIED', () => assertFails(getDoc(doc(as('alice'), 'secrets/s1'))));
 
 await env.cleanup();
