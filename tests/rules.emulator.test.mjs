@@ -10,7 +10,7 @@ import {
   assertSucceeds,
 } from '@firebase/rules-unit-testing';
 import {
-  doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc,
+  doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc, arrayRemove,
 } from 'firebase/firestore';
 
 const env = await initializeTestEnvironment({
@@ -104,6 +104,18 @@ await t('users: valid expense create ALLOWED', () => assertSucceeds(setDoc(doc(a
 await t('users: ownerId change on update DENIED', () => assertFails(updateDoc(doc(as('alice'), 'users/alice/expenses/x1'), { ownerId: 'bob' })));
 await t('users: 200-char doc ID (over the 128 limit) DENIED', () => assertFails(setDoc(doc(as('alice'), 'users/alice/expenses/' + 'A'.repeat(200)), { ownerId: 'alice', amount: 1, category: 'a', subcategory: 'b', date: 'd' })));
 await t('unknown top-level collection DENIED', () => assertFails(getDoc(doc(as('alice'), 'secrets/s1'))));
+
+// ---- leave-group ordering (matches the client's leaveSharedGroup) ----
+await seed();
+await t('leave group: delete own member doc FIRST, then arrayRemove on group ALLOWED', async () => {
+  await assertSucceeds(deleteDoc(doc(as('m1'), 'groups/g1/members/m1')));
+  await assertSucceeds(updateDoc(doc(as('m1'), 'groups/g1'), { memberUids: arrayRemove('m1') }));
+});
+await seed();
+await t('leave group: wrong order (group update first) leaves member-doc delete DENIED', async () => {
+  await assertSucceeds(updateDoc(doc(as('m1'), 'groups/g1'), { memberUids: arrayRemove('m1') }));
+  await assertFails(deleteDoc(doc(as('m1'), 'groups/g1/members/m1')));
+});
 
 await env.cleanup();
 console.table(results.map(([name, status]) => ({ name, status })));
