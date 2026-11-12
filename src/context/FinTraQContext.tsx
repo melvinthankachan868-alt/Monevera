@@ -4,193 +4,169 @@
  * Real User Data Only — Zero Automatic Mock Seeding
  */
 
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import React,{ createContext,useContext,useState,useEffect,useMemo,useCallback,useRef } from 'react';
+import { User,onAuthStateChanged } from 'firebase/auth';
 import {
-  auth,
-  signInWithGoogle as fbSignIn,
-  checkRedirectAuthResult,
-  signOutUser,
-  signInWithEmail as fbSignInEmail,
-  signUpWithEmail as fbSignUpEmail,
-  sendPasswordResetEmailUser,
+auth,
+signInWithGoogle as fbSignIn,
+checkRedirectAuthResult,
+signOutUser,
+signInWithEmail as fbSignInEmail,
+signUpWithEmail as fbSignUpEmail,
+sendPasswordResetEmailUser,
 } from '../db/firebase';
 import { firebaseConfig } from '../lib/firebase/config';
 import {
-  saveUserProfile,
-  fetchCloudIncomes,
-  saveCloudIncome,
-  deleteCloudIncome,
-  fetchCloudAllowances,
-  saveCloudAllowance,
-  deleteCloudAllowance,
-  fetchCloudBonuses,
-  saveCloudBonus,
-  deleteCloudBonus,
-  fetchCloudExpenses,
-  saveCloudExpense,
-  deleteCloudExpense,
-  fetchCloudBudgets,
-  saveCloudBudget,
-  fetchCloudSavings,
-  saveCloudSavings,
-  deleteCloudSavings,
-  fetchCloudInvestments,
-  saveCloudInvestment,
-  deleteCloudInvestment,
-  fetchCloudGoals,
-  saveCloudGoal,
-  deleteCloudGoal,
-  fetchCloudSubcategories,
-  saveCloudSubcategory,
-  deleteCloudSubcategory,
-  fetchCloudRecurring,
-  saveCloudRecurring,
-  deleteCloudRecurring,
-  fetchCloudMoneyOwed,
-  saveCloudMoneyOwed,
-  saveCloudMoneyOwedPayment,
-  deleteCloudMoneyOwed,
-  fetchCloudLoans,
-  saveCloudLoan,
-  deleteCloudLoan,
-  fetchCloudBills,
-  saveCloudBill,
-  deleteCloudBill,
-  fetchCloudSubscriptions,
-  saveCloudSubscription,
-  deleteCloudSubscription,
-  fetchCloudEmergencyFund,
-  saveCloudEmergencyFund,
-  saveCloudEmergencyContribution,
-  fetchCloudReminders,
-  saveCloudReminder,
-  deleteCloudReminder,
-  fetchCloudNotifications,
-  saveCloudNotification,
-  fetchCloudTransfers,
-  saveCloudTransfer,
-  fetchCloudAccounts,
-  saveCloudAccount,
-  deleteCloudAccount,
-  fetchCloudAlerts,
-  saveCloudAlert,
-  deleteCloudAlert,
-  fetchCloudAlertHistory,
-  saveCloudAlertHistory,
-  fetchCloudSettings,
-  saveCloudSettings,
-  batchUploadLocalDataToCloud,
-  deleteUserAccountAndData,
-  fetchCloudSplitGroups,
-  saveCloudSplitGroup,
-  deleteCloudSplitGroup,
-  fetchCloudGroupExpenses,
-  saveCloudGroupExpense,
-  deleteCloudGroupExpense,
-  fetchCloudGroupSettlements,
-  saveCloudGroupSettlement,
-  deleteCloudGroupSettlement,
-  saveSharedGroup,
-  deleteSharedGroupMember,
-  leaveSharedGroup,
-  fetchSharedGroups,
-  fetchSharedGroup,
-  deleteSharedGroup,
-  saveSharedGroupExpense,
-  deleteSharedGroupExpense,
-  saveSharedGroupSettlement,
-  deleteSharedGroupSettlement,
-  saveGroupInvitation,
-  fetchGroupInvitationByToken,
-  updateGroupInvitationStatus,
-  fetchGroupInvitations,
-  recordSharedGroupActivity,
-  fetchSharedGroupActivity,
-  subscribeToSharedGroupDoc,
-  subscribeToSharedGroupExpenses,
-  subscribeToSharedGroupSettlements,
-  subscribeToSharedGroupActivity,
+saveUserProfile,
+fetchCloudIncomes,
+saveCloudIncome,
+deleteCloudIncome,
+fetchCloudAllowances,
+saveCloudAllowance,
+deleteCloudAllowance,
+fetchCloudBonuses,
+saveCloudBonus,
+deleteCloudBonus,
+fetchCloudExpenses,
+saveCloudExpense,
+deleteCloudExpense,
+fetchCloudBudgets,
+saveCloudBudget,
+fetchCloudSavings,
+saveCloudSavings,
+deleteCloudSavings,
+fetchCloudInvestments,
+saveCloudInvestment,
+deleteCloudInvestment,
+fetchCloudGoals,
+saveCloudGoal,
+deleteCloudGoal,
+fetchCloudSubcategories,
+saveCloudSubcategory,
+deleteCloudSubcategory,fetchCloudMoneyOwed,
+saveCloudMoneyOwed,
+saveCloudMoneyOwedPayment,
+deleteCloudMoneyOwed,
+fetchCloudLoans,
+saveCloudLoan,
+deleteCloudLoan,
+fetchCloudBills,
+saveCloudBill,
+deleteCloudBill,
+fetchCloudSubscriptions,
+saveCloudSubscription,
+deleteCloudSubscription,
+fetchCloudEmergencyFund,
+saveCloudEmergencyFund,
+saveCloudEmergencyContribution,
+fetchCloudReminders,
+saveCloudReminder,
+deleteCloudReminder,
+fetchCloudNotifications,
+saveCloudNotification,
+fetchCloudTransfers,
+saveCloudTransfer,
+fetchCloudAccounts,
+saveCloudAccount,fetchCloudAlerts,
+saveCloudAlert,
+deleteCloudAlert,
+fetchCloudAlertHistory,
+saveCloudAlertHistory,
+fetchCloudSettings,
+saveCloudSettings,
+batchUploadLocalDataToCloud,
+deleteUserAccountAndData,saveCloudSplitGroup,
+deleteCloudSplitGroup,saveCloudGroupExpense,
+deleteCloudGroupExpense,saveCloudGroupSettlement,
+deleteCloudGroupSettlement,
+saveSharedGroup,
+deleteSharedGroupMember,fetchSharedGroups,
+fetchSharedGroup,
+deleteSharedGroup,
+saveSharedGroupExpense,
+deleteSharedGroupExpense,
+saveSharedGroupSettlement,
+deleteSharedGroupSettlement,
+saveGroupInvitation,
+fetchGroupInvitationByToken,
+updateGroupInvitationStatus,
+fetchGroupInvitations,
+recordSharedGroupActivity,subscribeToSharedGroupDoc,
+subscribeToSharedGroupExpenses,
+subscribeToSharedGroupSettlements,
+subscribeToSharedGroupActivity
 } from '../db/cloudFirestore';
 import {
-  AppSettings,
-  Income,
-  Allowance,
-  Bonus,
-  Expense,
-  SavingsRecord,
-  Investment,
-  FinancialGoal,
-  RecurringTransaction,
-  SubcategoryBudget,
-  Subcategory,
-  CategoryType,
-  CategorySummary,
-  SmartInsight,
-  DaySpending,
-  MonthlyFinancialSummary,
-  UserProfile,
-  Alert,
-  AlertHistory,
-  ChatMessage,
-  MoneyOwed,
-  MoneyOwedPayment,
-  Loan,
-  LoanPayment,
-  Bill,
-  Subscription,
-  EmergencyFund,
-  EmergencyFundContribution,
-  FinancialReminder,
-  AppNotification,
-  Transfer,
-  FinancialAccount,
-  EmergencyFundCalculation,
-  MoneyOwedSummary,
-  CashFlowSummary,
-  NetWorthSummary,
-  ObligationItem,
-  SplitGroup,
-  GroupMember,
-  GroupExpense,
-  GroupSettlement,
-  GlobalGroupBalancesSummary,
-  GroupFinancialSummary,
-  GroupInvitation,
-  GroupActivity,
-  MemberRole,
-  MemberStatus,
+AppSettings,
+Income,
+Allowance,
+Bonus,
+Expense,
+SavingsRecord,
+Investment,
+FinancialGoal,
+RecurringTransaction,
+SubcategoryBudget,
+Subcategory,
+CategoryType,
+CategorySummary,
+SmartInsight,
+DaySpending,
+MonthlyFinancialSummary,
+UserProfile,
+Alert,
+AlertHistory,
+ChatMessage,
+MoneyOwed,
+MoneyOwedPayment,
+Loan,Bill,
+Subscription,
+EmergencyFund,
+EmergencyFundContribution,
+FinancialReminder,
+AppNotification,
+Transfer,
+FinancialAccount,
+EmergencyFundCalculation,
+MoneyOwedSummary,
+CashFlowSummary,
+NetWorthSummary,
+ObligationItem,
+SplitGroup,
+GroupMember,
+GroupExpense,
+GroupSettlement,
+GlobalGroupBalancesSummary,
+GroupFinancialSummary,
+GroupInvitation,
+GroupActivity,
+MemberRole
 } from '../types';
 import { SplitSettlementEngine } from '../services/splitSettlementEngine';
-import { InvitationDeliveryProvider, DeliveryResult } from '../services/invitationDeliveryProvider';
-import { validateEmail, validatePhone } from '../utils/invitationValidation';
+import { InvitationDeliveryProvider,DeliveryResult } from '../services/invitationDeliveryProvider';
+import { validateEmail,validatePhone } from '../utils/invitationValidation';
 import { storage } from '../db/indexedDB';
-import { DEFAULT_SETTINGS, DEFAULT_SUBCATEGORIES } from '../constants/defaults';
+import { DEFAULT_SETTINGS,DEFAULT_SUBCATEGORIES } from '../constants/defaults';
+import { createAiStatusError,AiStatusError,shouldApplyAiReply } from '../utils/aiErrorHelper';
 import {
-  getCurrentMonthKey,
-  calculateTotalIncome,
-  calculateTotalExpenses,
-  calculateTotalSavings,
-  calculateInvestmentsSummary,
-  calculateCategorySummaries,
-  calculateDailySpent,
-  calculateCategoryDistribution,
-  calculateWeeklyDailySpending,
-  calculateTopSubcategories,
-  generateSmartInsights,
-  calculateMonthlySummary,
-  calculateEmergencyFundDetails,
-  calculateMoneyOwedSummary,
-  calculateCashFlow,
-  calculateNetWorth,
-  getUpcomingObligations,
-  getOverdueObligations,
-  calculateIncomeBreakdown,
-  calculateDueDateStatus,
-  toDateString,
-  formatINR,
+getCurrentMonthKey,calculateTotalExpenses,calculateInvestmentsSummary,
+calculateCategorySummaries,
+calculateDailySpent,
+calculateCategoryDistribution,
+calculateWeeklyDailySpending,
+calculateTopSubcategories,
+generateSmartInsights,
+calculateMonthlySummary,
+calculateEmergencyFundDetails,
+calculateMoneyOwedSummary,
+calculateCashFlow,
+calculateNetWorth,
+getUpcomingObligations,
+getOverdueObligations,
+calculateIncomeBreakdown,toDateString,
+formatINR
 } from '../utils/calculations';
-import { evaluateAllAlertsAndNotifications, AlertEvaluationContext } from '../utils/alertEngine';
+import { evaluateAllAlertsAndNotifications,AlertEvaluationContext } from '../utils/alertEngine';
 
 interface FinTraQContextType {
   // Auth & Cloud Sync
@@ -431,6 +407,8 @@ interface FinTraQContextType {
   isAiLoading: boolean;
   askFinTraQAI: (question: string) => Promise<string>;
   clearChatMessages: () => Promise<void>;
+  aiStatusError: AiStatusError | null;
+  clearAiStatusError: () => void;
 
   // Backup & Storage
   exportData: () => Promise<string>;
@@ -467,6 +445,10 @@ const FinTraQContext = createContext<FinTraQContextType | undefined>(undefined);
 export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Auth state
   const [user, setUser] = useState<User | null>(null);
+  const userRef = useRef<User | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -513,6 +495,8 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [alertHistory, setAlertHistory] = useState<AlertHistory[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [aiStatusError, setAiStatusError] = useState<AiStatusError | null>(null);
+  const clearAiStatusError = useCallback(() => setAiStatusError(null), []);
 
   // Split / Group Expenses State
   const [splitGroups, setSplitGroups] = useState<SplitGroup[]>([]);
@@ -583,6 +567,7 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Load from local IndexedDB cache on boot
   const loadLocalCache = useCallback(async () => {
     try {
+      const scopeAtStart = storage.getScope();
       const [
         storedSettings,
         storedIncomes,
@@ -658,7 +643,15 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAccounts(storedAccounts || []);
       setAlerts(storedAlerts || []);
       setAlertHistory(storedHistory || []);
-      setChatMessages(storedChat || []);
+
+      if (storage.getScope() === scopeAtStart) {
+        if (scopeAtStart === 'guest') {
+          setChatMessages([]);
+          await storage.clearChatMessages();
+        } else {
+          setChatMessages(storedChat || []);
+        }
+      }
 
       // Group / Split Expenses
       setSplitGroups(storedSplitGroups || []);
@@ -698,9 +691,14 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsAuthLoading(false);
 
       if (fbUser) {
+        userRef.current = fbUser;
         setUser(fbUser);
         const userScope = `user_${fbUser.uid}`;
         await storage.setScope(userScope);
+
+        // Restore this user's persistent chat messages from isolated storage
+        const userChat = await storage.getChatMessages();
+        setChatMessages(userChat || []);
 
         const profile: UserProfile = {
           uid: fbUser.uid,
@@ -852,8 +850,12 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setCloudSyncStatus('error');
         }
       } else {
+        userRef.current = null;
         setUser(null);
         setUserProfile(null);
+        setChatMessages([]);
+        setIsAiLoading(false);
+        setAiStatusError(null);
         setCloudSyncStatus('synced');
         setActiveSplitGroupId(null);
         await storage.setScope('guest');
@@ -998,6 +1000,10 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const signOut = useCallback(async () => {
     try {
+      userRef.current = null;
+      setChatMessages([]);
+      setIsAiLoading(false);
+      setAiStatusError(null);
       await signOutUser();
       setUser(null);
       setUserProfile(null);
@@ -1014,8 +1020,12 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!user) return;
     try {
       setCloudSyncStatus('syncing');
+      setChatMessages([]);
+      setIsAiLoading(false);
+      setAiStatusError(null);
       await deleteUserAccountAndData(user.uid);
       await storage.clearAllData();
+      userRef.current = null;
       await signOutUser();
       setUser(null);
       setUserProfile(null);
@@ -2288,19 +2298,30 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const askFinTraQAI = useCallback(
     async (question: string): Promise<string> => {
       setIsAiLoading(true);
+      setAiStatusError(null);
+
+      // (1) If there is no signed-in user, do not call the server.
+      if (!user) {
+        setIsAiLoading(false);
+        const unauthError = createAiStatusError(null, true);
+        setAiStatusError(unauthError);
+        return unauthError.message;
+      }
+
+      const startingUid = user.uid;
+      const getCurrentUid = () => (userRef.current ? userRef.current.uid : auth.currentUser ? auth.currentUser.uid : null);
+
       try {
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
         };
-        if (user) {
-          try {
-            const idToken = await user.getIdToken();
-            if (idToken && typeof idToken === 'string' && idToken.trim().length > 0) {
-              headers['Authorization'] = `Bearer ${idToken.trim()}`;
-            }
-          } catch {
-            // Token error fallback
+        try {
+          const idToken = await user.getIdToken();
+          if (idToken && typeof idToken === 'string' && idToken.trim().length > 0) {
+            headers['Authorization'] = `Bearer ${idToken.trim()}`;
           }
+        } catch {
+          // Token error fallback
         }
 
         const financialContext = {
@@ -2333,12 +2354,22 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
 
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || `Server responded with error status ${res.status}`);
+          if (!shouldApplyAiReply(startingUid, getCurrentUid())) {
+            return '';
+          }
+          // (2) Map status codes to honest messages: 401, 429, 503, other
+          const statusError = createAiStatusError(res.status, false);
+          setAiStatusError(statusError);
+          // (3) Never save a failure message as if it were a real assistant reply in stored chat history
+          return statusError.message;
         }
 
         const data = await res.json();
         const reply = data.reply;
+
+        if (!shouldApplyAiReply(startingUid, getCurrentUid())) {
+          return '';
+        }
 
         const userMsg: ChatMessage = {
           id: `msg-u-${Date.now()}`,
@@ -2355,32 +2386,35 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
           actionProposal: data.actionProposal,
         };
 
+        // Before the two storage.saveChatMessage calls, re-check the user and active storage scope
+        if (!shouldApplyAiReply(startingUid, getCurrentUid()) || storage.getScope() !== `user_${startingUid}`) {
+          return '';
+        }
+
         const updated = [...chatMessages, userMsg, assistantMsg];
         setChatMessages(updated);
         await storage.saveChatMessage(userMsg);
+
+        // After the first save, check again. If the user changed or scope switched in between, do not write the assistant message.
+        if (!shouldApplyAiReply(startingUid, getCurrentUid()) || storage.getScope() !== `user_${startingUid}`) {
+          return '';
+        }
+
         await storage.saveChatMessage(assistantMsg);
         return reply;
       } catch (err: any) {
         console.warn('AI Assistant notice:', err);
-        const fallbackText = 'Mike is temporarily unavailable. Please try again.';
-        const userMsg: ChatMessage = {
-          id: `msg-u-${Date.now()}`,
-          role: 'user',
-          content: question,
-          timestamp: Date.now(),
-        };
-        const assistantMsg: ChatMessage = {
-          id: `msg-a-${Date.now()}`,
-          role: 'assistant',
-          content: fallbackText,
-          timestamp: Date.now(),
-        };
-        setChatMessages((prev) => [...prev, userMsg, assistantMsg]);
-        await storage.saveChatMessage(userMsg).catch(console.warn);
-        await storage.saveChatMessage(assistantMsg).catch(console.warn);
-        return fallbackText;
+        if (!shouldApplyAiReply(startingUid, getCurrentUid())) {
+          return '';
+        }
+        const statusError = createAiStatusError(err?.status || 500, false);
+        setAiStatusError(statusError);
+        // (3) Never save a failure message as if it were a real assistant reply in stored chat history
+        return statusError.message;
       } finally {
-        setIsAiLoading(false);
+        if (shouldApplyAiReply(startingUid, getCurrentUid())) {
+          setIsAiLoading(false);
+        }
       }
     },
     [
@@ -2780,60 +2814,70 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       // Try server endpoint first (Requirement 13)
-      try {
-        const idToken = user ? await user.getIdToken().catch(() => undefined) : undefined;
-        const apiRes = await InvitationDeliveryProvider.createGroupInvitation(
-          groupId,
-          {
-            email: normalizedEmail,
-            phone: normalizedPhone,
-            name: recipientName?.trim() || undefined,
-            role: role === 'admin' ? 'admin' : 'member',
-            inviterName: user?.displayName || user?.email?.split('@')[0] || 'A Money Vault Member',
-            groupData: group,
-          },
-          idToken
-        );
-
-        const { invitation, deliveryResult } = apiRes;
-
-        // Update local context
-        setGroupInvitations((prev) => ({
-          ...prev,
-          [groupId]: [invitation, ...(prev[groupId] || []).filter((i) => i.id !== invitation.id)],
-        }));
-
-        // Add placeholder member to group in local state
-        const placeholderExists = group.members.some(
-          (m) =>
-            (type === 'email' && m.email?.toLowerCase() === cleanId.toLowerCase()) ||
-            (type === 'phone' && m.phone === cleanId)
-        );
-        if (!placeholderExists) {
-          const newMember: GroupMember = {
-            id: `mem-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-            name: recipientName?.trim() || cleanId.split('@')[0],
-            email: normalizedEmail,
-            phone: normalizedPhone,
-            role,
-            status: 'invited',
-            isCurrentUser: false,
-          };
-          const updatedGroup = {
-            ...group,
-            members: [...group.members, newMember],
-            updatedAt: Date.now(),
-          };
-          setSplitGroups((prev) => prev.map((g) => (g.id === groupId ? updatedGroup : g)));
-          await storage.saveSplitGroup(updatedGroup).catch(console.warn);
+      let idToken = '';
+      if (user) {
+        try {
+          idToken = (await user.getIdToken()) || '';
+        } catch (tokErr) {
+          console.warn('Failed to obtain user ID token:', tokErr);
         }
+      }
 
-        return { invitation, deliveryResult };
-      } catch (apiErr: any) {
-        if (apiErr?.isDuplicate) {
-          throw apiErr;
+      if (idToken) {
+        try {
+          const apiRes = await InvitationDeliveryProvider.createGroupInvitation(
+            groupId,
+            {
+              email: normalizedEmail,
+              phone: normalizedPhone,
+              name: recipientName?.trim() || undefined,
+              role: role === 'admin' ? 'admin' : 'member',
+              inviterName: user?.displayName || user?.email?.split('@')[0] || 'A Money Vault Member',
+              groupData: group,
+            },
+            idToken
+          );
+
+          const { invitation, deliveryResult } = apiRes;
+
+          // Update local context
+          setGroupInvitations((prev) => ({
+            ...prev,
+            [groupId]: [invitation, ...(prev[groupId] || []).filter((i) => i.id !== invitation.id)],
+          }));
+
+          // Add placeholder member to group in local state
+          const placeholderExists = group.members.some(
+            (m) =>
+              (type === 'email' && m.email?.toLowerCase() === cleanId.toLowerCase()) ||
+              (type === 'phone' && m.phone === cleanId)
+          );
+          if (!placeholderExists) {
+            const newMember: GroupMember = {
+              id: `mem-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              name: recipientName?.trim() || cleanId.split('@')[0],
+              email: normalizedEmail,
+              phone: normalizedPhone,
+              role,
+              status: 'invited',
+              isCurrentUser: false,
+            };
+            const updatedGroup = {
+              ...group,
+              members: [...group.members, newMember],
+              updatedAt: Date.now(),
+            };
+            setSplitGroups((prev) => prev.map((g) => (g.id === groupId ? updatedGroup : g)));
+            await storage.saveSplitGroup(updatedGroup).catch(console.warn);
+          }
+
+          return { invitation, deliveryResult };
+        } catch (apiErr: any) {
+          if (apiErr?.isDuplicate) {
+            throw apiErr;
+          }
+          console.warn('Backend invitation dispatch error, falling back to client dispatch:', apiErr);
         }
-        console.warn('Backend invitation dispatch error, falling back to client dispatch:', apiErr);
       }
 
       // Client-side fallback if server offline
@@ -2864,28 +2908,36 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
 
       let deliveryResult: DeliveryResult;
-      const idToken = user ? await user.getIdToken().catch(() => undefined) : undefined;
-      try {
-        if (type === 'email') {
-          deliveryResult = await InvitationDeliveryProvider.sendEmailInvitation(
-            invitation,
-            cleanId,
-            recipientName,
-            idToken
-          );
-        } else {
-          deliveryResult = await InvitationDeliveryProvider.sendSmsInvitation(
-            invitation,
-            cleanId,
-            idToken
-          );
+      if (idToken) {
+        try {
+          if (type === 'email') {
+            deliveryResult = await InvitationDeliveryProvider.sendEmailInvitation(
+              invitation,
+              cleanId,
+              recipientName?.trim() || undefined,
+              idToken
+            );
+          } else {
+            deliveryResult = await InvitationDeliveryProvider.sendSmsInvitation(
+              invitation,
+              cleanId,
+              idToken
+            );
+          }
+        } catch (sendErr: any) {
+          deliveryResult = {
+            success: false,
+            deliveryStatus: 'failed',
+            failureReason: sendErr?.message || 'Failed to dispatch invitation',
+            message: sendErr?.message || 'Failed to dispatch invitation',
+            shareableUrl: InvitationDeliveryProvider.getInviteUrl(invitation.token),
+          };
         }
-      } catch (sendErr: any) {
+      } else {
         deliveryResult = {
           success: false,
-          deliveryStatus: 'failed',
-          failureReason: sendErr?.message || 'Failed to dispatch invitation',
-          message: sendErr?.message || 'Failed to dispatch invitation',
+          deliveryStatus: 'not_configured',
+          message: 'Sign in to deliver invitations via email or SMS. You can copy or share the invitation link below.',
           shareableUrl: InvitationDeliveryProvider.getInviteUrl(invitation.token),
         };
       }
@@ -2908,9 +2960,26 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const resendGroupInvitation = useCallback(
     async (invitation: GroupInvitation): Promise<DeliveryResult> => {
-      let idToken: string | undefined = undefined;
+      let idToken = '';
+      if (user) {
+        try {
+          idToken = (await user.getIdToken()) || '';
+        } catch (tokErr) {
+          console.warn('Failed to obtain user ID token for resend:', tokErr);
+        }
+      }
+
+      if (!idToken) {
+        return {
+          success: false,
+          deliveryStatus: 'failed',
+          failureReason: 'Authentication required to resend invitations.',
+          message: 'Please sign in to resend invitations.',
+          shareableUrl: InvitationDeliveryProvider.getInviteUrl(invitation.token),
+        };
+      }
+
       try {
-        idToken = user ? await user.getIdToken().catch(() => undefined) : undefined;
         const result = await InvitationDeliveryProvider.resendGroupInvitation(
           invitation.groupId,
           invitation.id,
@@ -2966,11 +3035,17 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const revokeGroupInvitation = useCallback(
     async (groupId: string, token: string): Promise<void> => {
       const inv = (groupInvitations[groupId] || []).find((i) => i.token === token);
-      if (inv) {
-        const idToken = user ? await user.getIdToken().catch(() => undefined) : undefined;
-        await InvitationDeliveryProvider.revokeGroupInvitation(groupId, inv.id, idToken).catch(
-          console.warn
-        );
+      if (inv && user) {
+        try {
+          const idToken = (await user.getIdToken()) || '';
+          if (idToken) {
+            await InvitationDeliveryProvider.revokeGroupInvitation(groupId, inv.id, idToken).catch(
+              console.warn
+            );
+          }
+        } catch (revErr) {
+          console.warn('Revoke invitation error:', revErr);
+        }
       }
       await updateGroupInvitationStatus(token, 'revoked').catch(console.warn);
       setGroupInvitations((prev) => ({
@@ -3781,6 +3856,8 @@ export const FinTraQProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isAiLoading,
         askFinTraQAI,
         clearChatMessages,
+        aiStatusError,
+        clearAiStatusError,
         exportData,
         importData,
         clearAllData,

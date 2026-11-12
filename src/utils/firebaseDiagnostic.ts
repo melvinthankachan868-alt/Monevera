@@ -1,6 +1,6 @@
-import { auth, db } from '../lib/firebase/client';
+import { auth,db } from '../lib/firebase/client';
 import { firebaseConfig } from '../lib/firebase/config';
-import { runFirebaseDiagnostics, FirebaseDiagnosticsResult } from '../lib/firebase/diagnostics';
+import { runFirebaseDiagnostics,FirebaseDiagnosticsResult } from '../lib/firebase/diagnostics';
 
 export type { FirebaseDiagnosticsResult };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { CategoryType } from '../types';
 import { formatINR } from '../utils/calculations';
 

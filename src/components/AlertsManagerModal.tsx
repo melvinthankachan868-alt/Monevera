@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { Alert, AlertMetric, AlertCondition } from '../types';
+import { AlertMetric,AlertCondition } from '../types';
 import { formatINR } from '../utils/calculations';
 import {
-  Bell,
-  Plus,
-  Trash2,
-  X,
-  Mail,
-  ShieldCheck,
-  History,
-  ToggleLeft,
-  ToggleRight,
-  AlertTriangle,
+Bell,
+Plus,
+Trash2,
+X,
+Mail,
+ShieldCheck,
+History,
+ToggleLeft,
+ToggleRight,
+AlertTriangle,
 } from 'lucide-react';
 
 const METRIC_LABELS: Record<AlertMetric, string> = {

@@ -11,33 +11,33 @@
  */
 
 import {
-  CategoryType,
-  Expense,
-  Income,
-  Allowance,
-  Bonus,
-  SavingsRecord,
-  Investment,
-  FinancialGoal,
-  AppSettings,
-  SubcategoryBudget,
-  SalarySplit,
-  BudgetStatus,
-  CategorySummary,
-  SmartInsight,
-  DaySpending,
-  MonthlyFinancialSummary,
-  MoneyOwed,
-  Loan,
-  FinancialReminder,
-  Bill,
-  Subscription,
-  EmergencyFund,
-  FinancialAccount,
-  EmergencyFundCalculation,
-  MoneyOwedSummary,
-  CashFlowSummary,
-  NetWorthSummary,
+CategoryType,
+Expense,
+Income,
+Allowance,
+Bonus,
+SavingsRecord,
+Investment,
+FinancialGoal,
+AppSettings,
+SubcategoryBudget,
+SalarySplit,
+BudgetStatus,
+CategorySummary,
+SmartInsight,
+DaySpending,
+MonthlyFinancialSummary,
+MoneyOwed,
+Loan,
+FinancialReminder,
+Bill,
+Subscription,
+EmergencyFund,
+FinancialAccount,
+EmergencyFundCalculation,
+MoneyOwedSummary,
+CashFlowSummary,
+NetWorthSummary,
 } from '../types';
 
 /**
@@ -330,6 +330,261 @@ export function calculateBudgetStatus(budget: number, spent: number): BudgetStat
     status,
   };
 }
+
+export interface RingModel {
+  categoryName: string;
+  capType?: 'own' | 'guideline';
+  capTypeLabel?: 'Your limits' | 'Guideline';
+  spent: number;
+  cap: number;
+  remaining: number;
+  isOverBudget: boolean;
+  overAmount: number;
+  percentageUsed: number;
+  clampedPercent: number;
+  hasRing: boolean;
+  circumference: number;
+  strokeDashoffset: number;
+  status: 'safe' | 'warning' | 'danger';
+  statusColor: string;
+  remainingText: string;
+  spentOfCapText: string;
+  ariaLabel: string;
+}
+
+/**
+ * Pure calculation helper for circular progress rings.
+ * Uses integer-paise arithmetic to eliminate floating-point precision artefacts.
+ * Ensures clamped stroke offset for SVG rendering while preserving the exact unclamped
+ * percentage for display (e.g. 130% over budget displays "130%").
+ * When spent < cap and not over, never shows a label of 100%: shows min(99, rounded).
+ * All colours use existing --mv-* tokens.
+ */
+export function getRingModel(
+  spent: number | null | undefined,
+  cap: number | null | undefined,
+  categoryName: string,
+  radius: number = 38,
+  customColor?: string,
+  capType?: 'own' | 'guideline'
+): RingModel {
+  const safeSpent = spent === null || spent === undefined || isNaN(spent) ? 0 : spent;
+  const safeCap = cap === null || cap === undefined || isNaN(cap) ? 0 : cap;
+
+  // Integer paise math
+  const spentPaise = Math.round(safeSpent * 100);
+  const capPaise = Math.round(safeCap * 100);
+  const circumference = 2 * Math.PI * radius;
+
+  const capTypeLabel =
+    capType === 'own' ? 'Your limits' : capType === 'guideline' ? 'Guideline' : undefined;
+
+  if (capPaise <= 0) {
+    const displaySpent = spentPaise / 100;
+    const isOver = displaySpent > 0;
+    return {
+      categoryName,
+      capType,
+      capTypeLabel,
+      spent: displaySpent,
+      cap: 0,
+      remaining: -displaySpent,
+      isOverBudget: isOver,
+      overAmount: isOver ? displaySpent : 0,
+      percentageUsed: isOver ? 100 : 0,
+      clampedPercent: isOver ? 100 : 0,
+      hasRing: false,
+      circumference,
+      strokeDashoffset: circumference,
+      status: isOver ? 'danger' : 'safe',
+      statusColor: isOver ? 'var(--mv-danger)' : (customColor || 'var(--mv-cyan)'),
+      remainingText: 'No cap set',
+      spentOfCapText: `${formatINR(displaySpent)} spent`,
+      ariaLabel: `${categoryName}${capTypeLabel ? ` (${capTypeLabel})` : ''}: ${formatINR(displaySpent)} spent, no cap set`,
+    };
+  }
+
+  const remainingPaise = capPaise - spentPaise;
+  const isOverBudget = remainingPaise < 0;
+  const overAmountPaise = isOverBudget ? Math.abs(remainingPaise) : 0;
+
+  // Raw rounded percentage
+  const rawPercentage = Math.round((spentPaise / capPaise) * 100);
+
+  // Status thresholds identical to calculateBudgetStatus:
+  let status: 'safe' | 'warning' | 'danger' = 'safe';
+  if (isOverBudget) {
+    status = 'danger';
+  } else if (rawPercentage >= 85) {
+    status = 'warning';
+  }
+
+  // When spent < cap and not over, never show a label of 100%: show min(99, rounded).
+  let percentageUsed = rawPercentage;
+  if (!isOverBudget && spentPaise < capPaise && rawPercentage >= 100) {
+    percentageUsed = Math.min(99, rawPercentage);
+  }
+
+  // Clamped percentage for SVG arc: 0 to 100
+  const clampedPercent = Math.min(Math.max(percentageUsed, 0), 100);
+  const strokeDashoffset = circumference * (1 - clampedPercent / 100);
+
+  // Tokens: replace hard-coded hexes with existing --mv-* tokens
+  let statusColor: string;
+  if (status === 'danger') {
+    statusColor = 'var(--mv-danger)';
+  } else if (status === 'warning') {
+    statusColor = 'var(--mv-warning)';
+  } else {
+    statusColor =
+      customColor ||
+      (categoryName === 'Needs'
+        ? 'var(--mv-cyan)'
+        : categoryName === 'Wants'
+        ? 'var(--mv-amber)'
+        : categoryName === 'Savings'
+        ? 'var(--mv-green)'
+        : 'var(--mv-primary)');
+  }
+
+  const displaySpent = spentPaise / 100;
+  const displayCap = capPaise / 100;
+  const displayRemaining = remainingPaise / 100;
+  const displayOverAmount = overAmountPaise / 100;
+
+  const remainingText = isOverBudget
+    ? `${formatINR(displayOverAmount)} over`
+    : `${formatINR(displayRemaining)} left`;
+
+  const spentOfCapText = `${formatINR(displaySpent)} of ${formatINR(displayCap)}`;
+  const ariaLabel = `${categoryName}${capTypeLabel ? ` (${capTypeLabel})` : ''}: ${formatINR(displaySpent)} of ${formatINR(displayCap)} spent, ${percentageUsed} percent`;
+
+  return {
+    categoryName,
+    capType,
+    capTypeLabel,
+    spent: displaySpent,
+    cap: displayCap,
+    remaining: displayRemaining,
+    isOverBudget,
+    overAmount: displayOverAmount,
+    percentageUsed,
+    clampedPercent,
+    hasRing: true,
+    circumference,
+    strokeDashoffset,
+    status,
+    statusColor,
+    remainingText,
+    spentOfCapText,
+    ariaLabel,
+  };
+}
+
+export interface CategoryRingItem {
+  category: CategoryType;
+  model: RingModel;
+  capType: 'own' | 'guideline';
+  capTypeLabel: 'Your limits' | 'Guideline';
+}
+
+export interface BudgetOverviewResult {
+  rings: CategoryRingItem[];
+  noCapCategories: { category: CategoryType; spent: number }[];
+  totalModel: RingModel;
+  hasAnyCap: boolean;
+  totalCap: number;
+  totalSpent: number;
+}
+
+/**
+ * Computes the complete Budget Overview model:
+ * - Priority: For any category that has subcategory limits set for selectedMonth (budgets with amount > 0),
+ *   uses the SUM of those limits as the cap and matching subcategory spend as spent (labeled "Your limits").
+ * - Guideline fallback: Keeps the 50/30/20 guideline ring for categories with no own limits (labeled "Guideline").
+ * - Empty state condition: hasAnyCap is true if either own limits or guideline caps exist.
+ */
+export function calculateBudgetOverviewModel(
+  categorySummaries: CategorySummary[],
+  budgets: SubcategoryBudget[],
+  expenses: Expense[],
+  selectedMonth: string
+): BudgetOverviewResult {
+  const categories: CategoryType[] = ['Needs', 'Wants', 'Savings'];
+  const rings: CategoryRingItem[] = [];
+  const noCapCategories: { category: CategoryType; spent: number }[] = [];
+  let totalCap = 0;
+  let totalSpent = 0;
+
+  for (const cat of categories) {
+    const ownBudgets = budgets.filter(
+      (b) => b.category === cat && b.month === selectedMonth && Number(b.amount) > 0
+    );
+
+    if (ownBudgets.length > 0) {
+      // 1. Owner's own limits win: sum of those subcategory limits as cap
+      const ownCap = ownBudgets.reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
+      // Matching subcategory spend as spent via calculateSubcategorySpent
+      const ownSpent = ownBudgets.reduce(
+        (sum, b) => sum + calculateSubcategorySpent(expenses, b.subcategory, cat, selectedMonth),
+        0
+      );
+      const model = getRingModel(ownSpent, ownCap, cat, 36, undefined, 'own');
+      rings.push({
+        category: cat,
+        model,
+        capType: 'own',
+        capTypeLabel: 'Your limits',
+      });
+      totalCap += ownCap;
+      totalSpent += ownSpent;
+    } else {
+      // 2. Fall back to 50/30/20 guideline
+      const summary = categorySummaries.find((c) => c.category === cat);
+      const guidelineCap = summary?.budget || 0;
+      const guidelineSpent =
+        summary?.spent !== undefined
+          ? summary.spent
+          : calculateCategorySpent(expenses, cat, selectedMonth);
+
+      if (guidelineCap > 0) {
+        const model = getRingModel(guidelineSpent, guidelineCap, cat, 36, undefined, 'guideline');
+        rings.push({
+          category: cat,
+          model,
+          capType: 'guideline',
+          capTypeLabel: 'Guideline',
+        });
+        totalCap += guidelineCap;
+        totalSpent += guidelineSpent;
+      } else if (guidelineSpent > 0) {
+        noCapCategories.push({
+          category: cat,
+          spent: guidelineSpent,
+        });
+      }
+    }
+  }
+
+  const hasAnyCap = rings.length > 0;
+  const totalModel = getRingModel(
+    totalSpent,
+    totalCap,
+    'Total Budget',
+    24,
+    'var(--mv-primary)'
+  );
+
+  return {
+    rings,
+    noCapCategories,
+    totalModel,
+    hasAnyCap,
+    totalCap,
+    totalSpent,
+  };
+}
+
 
 export function calculateCategorySummaries(
   expenses: Expense[],

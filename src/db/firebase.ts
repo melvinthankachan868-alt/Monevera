@@ -1,21 +1,21 @@
-import { doc, getDocFromServer } from 'firebase/firestore';
-import { app, auth, db, googleAuthProvider } from '../lib/firebase/client';
+import { doc,getDocFromServer } from 'firebase/firestore';
+import { app,auth,db,googleAuthProvider } from '../lib/firebase/client';
 import {
-  signUpWithEmail,
-  signInWithEmail,
-  signInWithGoogle,
-  checkRedirectAuthResult,
-  sendPasswordReset,
-  signOutUser,
-  onAuthChange,
+signUpWithEmail,
+signInWithEmail,
+signInWithGoogle,
+checkRedirectAuthResult,
+sendPasswordReset,
+signOutUser,
+onAuthChange,
 } from '../lib/firebase/auth';
 import {
-  handleAuthError,
-  categorizeAuthError,
-  getUserFacingAuthMessage,
-  sanitizeLogValue,
-  AuthErrorCategory,
-  SanitizedAuthErrorInfo,
+handleAuthError,
+categorizeAuthError,
+getUserFacingAuthMessage,
+sanitizeLogValue,
+AuthErrorCategory,
+SanitizedAuthErrorInfo,
 } from '../lib/firebase/authErrors';
 
 // Re-export single initialized instances

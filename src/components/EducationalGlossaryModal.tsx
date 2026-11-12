@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, BookOpen, CheckCircle, AlertTriangle, Lightbulb } from 'lucide-react';
+import { X,BookOpen,CheckCircle,AlertTriangle,Lightbulb } from 'lucide-react';
 import { EducationalGlossaryTerm } from '../types/research';
 
 interface EducationalGlossaryModalProps {

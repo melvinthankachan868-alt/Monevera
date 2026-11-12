@@ -1,22 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React,{ useState,useMemo } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { CategoryType, Subcategory } from '../types';
+import { CategoryType } from '../types';
 import { formatINR } from '../utils/calculations';
 import { BudgetSplitEditor } from '../components/BudgetSplitEditor';
 import { SubcategoryBudgetModal } from '../components/SubcategoryBudgetModal';
-import { CategoryIcon } from '../components/CategoryIcon';
+import { BudgetOverview } from '../components/BudgetOverview';
 import {
-  PiggyBank,
-  Plus,
-  Edit2,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2,
-  PieChart,
-  Layers,
-  Sparkles,
-  ArrowRight,
-  ArrowLeft,
+PiggyBank,
+Plus,
+Edit2,PieChart,ArrowLeft
 } from 'lucide-react';
 
 export const BudgetsScreen: React.FC = () => {
@@ -185,6 +177,15 @@ export const BudgetsScreen: React.FC = () => {
 
       {activeTab === 'rules' ? (
         <div className="space-y-6">
+          {/* Budget Overview Rings Component */}
+          <BudgetOverview
+            onAdjustSplit={() => setSplitEditorOpen(true)}
+            onConfigureLimits={(cat) => {
+              setModalCategory(cat);
+              setSubcatModalOpen(true);
+            }}
+          />
+
           {/* Main 50/30/20 Rule Visual Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Needs Card */}

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, toDateString } from '../utils/calculations';
-import { ShieldCheck, ArrowRight, CheckCircle2, Sparkles, X, ChevronLeft } from 'lucide-react';
+import { formatINR,toDateString } from '../utils/calculations';
+import { ShieldCheck,ArrowRight,CheckCircle2,Sparkles,X,ChevronLeft } from 'lucide-react';
 
 interface OnboardingFlowProps {
   onComplete: () => void;

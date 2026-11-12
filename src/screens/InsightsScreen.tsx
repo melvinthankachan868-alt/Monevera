@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { formatINR } from '../utils/calculations';
 import { DonutChart } from '../components/DonutChart';
 import { WeeklyChart } from '../components/WeeklyChart';
 import { exportFinancialStatementPDF } from '../utils/pdfExport';
 import {
-  PieChart as PieChartIcon,
-  TrendingUp,
-  TrendingDown,
-  Download,
-  Briefcase,
-  AlertTriangle,
-  Lightbulb,
-  CheckCircle,
+PieChart as PieChartIcon,
+TrendingUp,
+TrendingDown,
+Download,
+Briefcase,
+AlertTriangle,
+Lightbulb,
+CheckCircle,
 } from 'lucide-react';
 
 export const InsightsScreen: React.FC = () => {

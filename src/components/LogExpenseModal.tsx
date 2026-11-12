@@ -1,21 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState,useEffect,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import {
-  CategoryType,
-  PaymentMethod,
-  IncomeType,
-  AllowanceType,
-  BonusType,
-  SavingsType,
-  InvestmentType,
-  GoalCategory,
-  Expense,
-  LoanType,
-  BillCategory,
+CategoryType,
+PaymentMethod,
+IncomeType,
+AllowanceType,
+BonusType,Expense
 } from '../types';
 import { CategoryIcon } from './CategoryIcon';
-import { formatINR, toDateString } from '../utils/calculations';
-import { X, Trash2, Calendar, Plus, ArrowDownLeft, ArrowUpRight, ShieldCheck, Repeat } from 'lucide-react';
+import { formatINR,toDateString } from '../utils/calculations';
+import { X,Trash2,Plus } from 'lucide-react';
 
 interface LogExpenseModalProps {
   isOpen: boolean;

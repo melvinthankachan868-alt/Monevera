@@ -5,14 +5,14 @@
  */
 
 import {
-  CompanyResearchDetail,
-  CompanyResearchSummary,
-  AnnualFinancials,
-  QuarterlyFinancials,
-  CorporateActionItem,
-  IndianFilingReference,
-  NormalizedGrowthCalculations,
-  ValuationMetrics,
+CompanyResearchDetail,
+CompanyResearchSummary,
+AnnualFinancials,
+QuarterlyFinancials,
+CorporateActionItem,
+IndianFilingReference,
+NormalizedGrowthCalculations,
+ValuationMetrics,
 } from '../types/research';
 import { INDIAN_EQUITIES_UNIVERSE } from '../data/indianEquitiesUniverse';
 import { IndianCompanyMasterService } from './indianCompanyMasterService';

@@ -1,33 +1,29 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { MoneyVaultLogo } from '../components/MoneyVaultLogo';
 import {
-  Settings as SettingsIcon,
-  User,
-  Shield,
-  Cloud,
-  Download,
-  Upload,
-  Trash2,
-  Bell,
-  FileText,
-  Lock,
-  ExternalLink,
-  CheckCircle2,
-  RefreshCw,
-  Sun,
-  Moon,
-  Sparkles,
-  Compass,
-  ArrowRight,
-  Activity,
+Settings as SettingsIcon,
+User,Cloud,
+Download,
+Upload,
+Trash2,
+Bell,
+FileText,
+Lock,CheckCircle2,Sun,
+Moon,
+Sparkles,
+Compass,Activity,
+Globe
 } from 'lucide-react';
 import { exportFinancialStatementPDF } from '../utils/pdfExport';
 import { DiagnosticDashboard } from '../components/DiagnosticDashboard';
+import { ALLOWED_FX_CURRENCIES,CURRENCY_METADATA } from '../utils/currencyConversion';
 
 export const SettingsScreen: React.FC = () => {
   const {
     user,
+    settings,
+    updateSettings,
     userProfile,
     signInWithGoogle,
     signOut,
@@ -301,6 +297,69 @@ export const SettingsScreen: React.FC = () => {
         >
           Configure
         </button>
+      </div>
+
+      {/* Secondary Currencies Configuration (Display-Only Estimates) */}
+      <div className="bg-[var(--mv-surface)] rounded-2xl border border-[var(--mv-border)] shadow-xs p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-[var(--mv-text-primary)] flex items-center gap-2">
+              <Globe size={18} className="text-[var(--mv-primary)]" />
+              <span>Display Currencies (Secondary Estimates)</span>
+            </h2>
+            <p className="text-xs text-[var(--mv-text-secondary)] mt-0.5">
+              Select up to 3 secondary currencies to estimate your available balance on the Dashboard. Primary accounts and calculations always stay in INR.
+            </p>
+          </div>
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[var(--mv-surface-hover)] border border-[var(--mv-border)] text-[var(--mv-text-secondary)] self-start sm:self-auto shrink-0">
+            Selected: {(settings?.secondaryCurrencies || []).length} / 3
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 pt-1">
+          {ALLOWED_FX_CURRENCIES.map((curr) => {
+            const isSelected = (settings?.secondaryCurrencies || []).includes(curr);
+            const meta = CURRENCY_METADATA[curr];
+            return (
+              <button
+                key={curr}
+                type="button"
+                onClick={async () => {
+                  const currentList = settings?.secondaryCurrencies || [];
+                  let updated: string[];
+                  if (isSelected) {
+                    updated = currentList.filter((c) => c !== curr);
+                  } else {
+                    if (currentList.length >= 3) {
+                      return; // Max 3
+                    }
+                    updated = [...currentList, curr];
+                  }
+                  await updateSettings({ secondaryCurrencies: updated });
+                }}
+                disabled={!isSelected && (settings?.secondaryCurrencies || []).length >= 3}
+                className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                  isSelected
+                    ? 'border-[var(--mv-primary)] bg-[var(--mv-primary)]/10 text-[var(--mv-text-primary)] shadow-xs'
+                    : (settings?.secondaryCurrencies || []).length >= 3
+                    ? 'opacity-40 border-[var(--mv-border)] bg-[var(--mv-bg-secondary)] cursor-not-allowed'
+                    : 'border-[var(--mv-border)] bg-[var(--mv-bg-secondary)] hover:bg-[var(--mv-surface-hover)] text-[var(--mv-text-primary)]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black tracking-tight">{curr}</span>
+                  <span className="text-[10px] font-bold text-[var(--mv-text-muted)]">{meta?.symbol}</span>
+                </div>
+                <div className="text-[10px] text-[var(--mv-text-secondary)] mt-1 truncate">
+                  {meta?.name || curr}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-[var(--mv-text-muted)] italic">
+          🔒 Invariant: Converted figures are display-only overlays. All transactions, budgets, debts, and exports remain in whole INR.
+        </p>
       </div>
 
       {/* Export & Reports */}

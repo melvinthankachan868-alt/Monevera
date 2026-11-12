@@ -1,8 +1,8 @@
 import {
-  CompanyResearchSummary,
-  CompanyResearchDetail,
-  SectorCategory,
-  MarketCapCategory,
+CompanyResearchSummary,
+CompanyResearchDetail,
+SectorCategory,
+MarketCapCategory,
 } from '../types/research';
 import { SECDataProvider } from './secDataProvider';
 import { FinancialCalculationEngine } from './financialCalculationEngine';

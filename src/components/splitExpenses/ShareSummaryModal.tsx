@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { X, Copy, Check, Share2 } from 'lucide-react';
-import { SplitGroup, GroupFinancialSummary } from '../../types/splitExpenses';
+import React,{ useState } from 'react';
+import { X,Copy,Check,Share2 } from 'lucide-react';
+import { SplitGroup,GroupFinancialSummary } from '../../types/splitExpenses';
 import { SplitSettlementEngine } from '../../services/splitSettlementEngine';
 
 interface ShareSummaryModalProps {

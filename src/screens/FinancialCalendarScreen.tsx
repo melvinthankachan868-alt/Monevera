@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, toDateString, formatDisplayDate } from '../utils/calculations';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Info } from 'lucide-react';
+import { formatINR,toDateString,formatDisplayDate } from '../utils/calculations';
+import { ChevronLeft,ChevronRight,Calendar as CalendarIcon } from 'lucide-react';
 
 export const FinancialCalendarScreen: React.FC = () => {
   const {

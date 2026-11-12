@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { CategorySummary, CategoryType } from '../types';
+import { CategorySummary,CategoryType } from '../types';
 import { CategoryIcon } from './CategoryIcon';
-import { formatINR, calculateSubcategorySpent, calculateBudgetStatus } from '../utils/calculations';
-import { ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
+import { formatINR,calculateSubcategorySpent,calculateBudgetStatus } from '../utils/calculations';
+import { ChevronDown,ChevronUp,Settings2 } from 'lucide-react';
 
 interface BudgetCategoryCardProps {
   summary: CategorySummary;

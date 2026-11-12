@@ -1,27 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React,{ useState,useEffect,useMemo } from 'react';
 import {
-  diagnosticBus,
-  DiagnosticEvent,
-  DiagnosticEventType,
-  DiagnosticEventLevel,
+diagnosticBus,
+DiagnosticEvent,
+DiagnosticEventType,
+DiagnosticEventLevel,
 } from '../utils/diagnosticEventBus';
 import { DiagnosticDashboard } from './DiagnosticDashboard';
 import {
-  Terminal,
-  X,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  Bug,
-  Trash2,
-  Maximize2,
-  Minimize2,
-  Filter,
-  Search,
-  Activity,
-  Layers,
-  ChevronRight,
-  ChevronDown,
+Terminal,
+X,
+AlertTriangle,
+CheckCircle2,
+Info,
+Bug,
+Trash2,
+Maximize2,
+Minimize2,Search,
+Activity
 } from 'lucide-react';
 
 export const DevOverlay: React.FC = () => {

@@ -508,6 +508,7 @@ export interface AlertHistory {
 // ==================== SETTINGS & MISC ====================
 export interface AppSettings {
   currency: string;
+  secondaryCurrencies?: string[];
   monthlyIncome?: number;
   monthlySalary?: number;
   needsPercentage: number;

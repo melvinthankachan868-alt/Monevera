@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Users, Plus, Trash2, Check, Sparkles } from 'lucide-react';
+import React,{ useState } from 'react';
+import { X,Users,Plus,Trash2,Check,Sparkles } from 'lucide-react';
 import { useFinTraQ } from '../../context/FinTraQContext';
 import { SplitGroup } from '../../types/splitExpenses';
 

@@ -1,22 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import {
-  Scale,
-  Plus,
-  Trash2,
-  ExternalLink,
-  ArrowRight,
-  TrendingUp,
-  ShieldCheck,
-  AlertTriangle,
-  Zap,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
-  Search,
+Scale,Trash2,ArrowRight,ShieldCheck,
+AlertTriangle,HelpCircle,
+Search
 } from 'lucide-react';
 import { useResearch } from '../context/ResearchContext';
 import { CompanyResearchDetail } from '../types/research';
-import { formatINR, formatCrores } from '../utils/indianCurrencyFormatter';
+import { formatINR,formatCrores } from '../utils/indianCurrencyFormatter';
+import { RATE_LIMIT_MSG } from '../utils/aiErrorHelper';
 
 export const ResearchCompareView: React.FC = () => {
   const {
@@ -44,7 +35,12 @@ export const ResearchCompareView: React.FC = () => {
       setError(null);
       try {
         const res = await fetch(`/api/research/compare?tickers=${encodeURIComponent(compareTickers.join(','))}`);
-        if (!res.ok) throw new Error(`Failed to load comparison (status ${res.status})`);
+        if (!res.ok) {
+          if (res.status === 429) {
+            throw new Error(RATE_LIMIT_MSG);
+          }
+          throw new Error(`Failed to load comparison (status ${res.status})`);
+        }
         const data = await res.json();
         setCompareProfiles(data.companies || []);
       } catch (err: any) {

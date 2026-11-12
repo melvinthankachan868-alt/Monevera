@@ -10,15 +10,13 @@
  */
 
 import {
-  GroupMember,
-  GroupExpense,
-  GroupSettlement,
-  SplitParticipant,
-  SplitExpensePayment,
-  SplitMethod,
-  MemberBalanceSummary,
-  SettlementRecommendation,
-  GroupFinancialSummary,
+GroupMember,
+GroupExpense,
+GroupSettlement,
+SplitParticipant,
+SplitExpensePayment,MemberBalanceSummary,
+SettlementRecommendation,
+GroupFinancialSummary
 } from '../types/splitExpenses';
 
 export class SplitSettlementEngine {

@@ -1,4 +1,4 @@
-import { AnnualFinancials, SECFilingReference } from '../types/research';
+import { AnnualFinancials,SECFilingReference } from '../types/research';
 
 export interface SECCompanySubmissions {
   cik: string;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { FinTraQProvider } from './context/FinTraQContext';
 import { ResearchProvider } from './context/ResearchContext';
 import { AppShell } from './components/AppShell';

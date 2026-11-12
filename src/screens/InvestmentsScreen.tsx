@@ -1,20 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React,{ useState,useMemo } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatDisplayDate } from '../utils/calculations';
-import { Investment, InvestmentType } from '../types';
+import { formatINR,formatDisplayDate } from '../utils/calculations';
 import {
-  TrendingUp,
-  Plus,
-  Trash2,
-  PieChart,
-  ArrowUpRight,
-  ArrowDownRight,
-  LineChart,
-  Layers,
-  Sparkles,
-  DollarSign,
-  Pencil,
-  Compass,
+TrendingUp,
+Plus,
+Trash2,
+PieChart,Pencil,
+Compass
 } from 'lucide-react';
 
 export const InvestmentsScreen: React.FC = () => {

@@ -1,20 +1,15 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { Bill, Subscription, FinancialReminder, ReminderType, BillCategory } from '../types';
-import { formatINR, calculateDueDateStatus, formatDisplayDate, toDateString } from '../utils/calculations';
+import { ReminderType } from '../types';
+import { formatINR,formatDisplayDate,toDateString } from '../utils/calculations';
 import {
-  CalendarCheck,
-  Plus,
-  Clock,
-  CheckCircle2,
-  Trash2,
-  Bell,
-  Zap,
-  Repeat,
-  AlertTriangle,
-  ArrowRight,
-  Filter,
-  Pencil,
+CalendarCheck,
+Plus,
+Clock,
+CheckCircle2,
+Trash2,
+Bell,Repeat,
+AlertTriangle,Pencil
 } from 'lucide-react';
 
 const REMINDER_TYPES: ReminderType[] = [

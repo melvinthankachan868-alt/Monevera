@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express,{ Request,Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { GoogleGenAI } from '@google/genai';
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp,getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
 import firebaseConfig from './firebase-applet-config.json' with { type: 'json' };
@@ -12,7 +12,7 @@ import { MarketDataProvider } from './src/services/marketDataProvider';
 import { IndianMarketDataProvider } from './src/services/indianMarketDataProvider';
 import { SECDataProvider } from './src/services/secDataProvider';
 import { RESEARCH_GLOSSARY_TERMS } from './src/constants/researchGlossary';
-import { validateEmail, validatePhone } from './src/utils/invitationValidation';
+import { validateEmail,validatePhone } from './src/utils/invitationValidation';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -162,9 +162,32 @@ process.on('uncaughtException', (err: any) => {
   process.exit(1);
 });
 
+export function resolveTrustProxyHops(
+  envVal = process.env.TRUST_PROXY_HOPS,
+  nodeEnv = process.env.NODE_ENV
+): number {
+  if (envVal !== undefined && envVal.trim().length > 0) {
+    const trimmed = envVal.trim();
+    const parsed = parseInt(trimmed, 10);
+    if (!isNaN(parsed) && String(parsed) === trimmed && parsed >= 0 && parsed <= 5) {
+      return parsed;
+    }
+    console.warn(
+      `[Server Warning] Invalid TRUST_PROXY_HOPS "${envVal}". Must be an integer between 0 and 5. Falling back to default.`
+    );
+  }
+  return nodeEnv === 'production' ? 1 : 0;
+}
+
 const app = express();
+const trustProxyHops = resolveTrustProxyHops();
+app.set('trust proxy', trustProxyHops);
 app.disable('x-powered-by');
-app.use(express.json({ limit: '10mb' }));
+// Body size limits: only receipt OCR (base64 image) needs a large body. Everything else is small JSON,
+// so a low cap stops unauthenticated callers from forcing the server to buffer huge payloads.
+const largeJson = express.json({ limit: '10mb' });
+const smallJson = express.json({ limit: '1mb' });
+app.use((req, res, next) => (req.path === '/api/ocr/receipt' ? largeJson : smallJson)(req, res, next));
 
 // Set Security Headers (preserving Cross-Origin-Opener-Policy for Firebase OAuth popup auth)
 app.use((req, res, next) => {
@@ -177,8 +200,27 @@ app.use((req, res, next) => {
 
 // Lightweight In-Memory Per-User / Per-IP Rate Limiter (Zero external dependencies)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now();
+
+function cleanupExpiredRateLimits(now = Date.now()): void {
+  for (const [key, record] of rateLimitStore.entries()) {
+    if (now > record.resetAt) {
+      rateLimitStore.delete(key);
+    }
+  }
+}
+
+// Prune expired entries periodically to prevent memory leaks from one-off IPs
+const rateLimitCleanupTimer = setInterval(() => {
+  cleanupExpiredRateLimits();
+}, 60000);
+rateLimitCleanupTimer.unref?.();
+
+function checkRateLimit(key: string, limit: number, windowMs: number, customNow?: number): boolean {
+  const now = customNow ?? Date.now();
+  // Opportunistic cleanup if store has accumulated entries
+  if (rateLimitStore.size > 200) {
+    cleanupExpiredRateLimits(now);
+  }
   const record = rateLimitStore.get(key);
   if (!record || now > record.resetAt) {
     rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
@@ -193,7 +235,8 @@ function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
 
 function rateLimitMiddleware(limit: number, windowMs = 60000, prefix = 'rl') {
   return (req: Request, res: Response, next: () => void) => {
-    const userKey = (req as any).user?.uid || req.ip || 'anonymous';
+    const clientIp = req.ip || req.socket.remoteAddress || 'anonymous';
+    const userKey = (req as any).user?.uid || clientIp;
     const key = `${prefix}:${userKey}`;
     if (!checkRateLimit(key, limit, windowMs)) {
       return res.status(429).json({
@@ -203,50 +246,6 @@ function rateLimitMiddleware(limit: number, windowMs = 60000, prefix = 'rl') {
     }
     next();
   };
-}
-
-/**
- * Middleware: Verify Firebase Authentication Token
- * Validates token signature, expiration, issuer, audience against firebaseConfig.projectId.
- * Any malformed, expired, revoked, or untrusted token is immediately rejected with HTTP 401.
- */
-async function authenticateFirebaseUser(req: Request, res: Response, next: () => void) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return next();
-  }
-
-  if (!authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: Invalid Authorization header format. Expected Bearer <token>.' });
-  }
-
-  const idToken = authHeader.split('Bearer ')[1]?.trim();
-  if (!idToken || idToken === 'undefined' || idToken === 'null') {
-    return res.status(401).json({ error: 'Unauthorized: Missing or invalid token in Bearer header.' });
-  }
-
-  // Fast check: A valid Firebase ID token must be a 3-part base64-encoded JWT
-  const segments = idToken.split('.');
-  if (segments.length !== 3 || !segments[0] || !segments[1] || !segments[2]) {
-    return res.status(401).json({ error: 'Unauthorized: Malformed JWT token format.' });
-  }
-
-  try {
-    const decodedToken = await getAuth().verifyIdToken(idToken);
-    if (decodedToken.aud !== firebaseConfig.projectId) {
-      return res.status(401).json({ error: 'Unauthorized: Token audience does not match project.' });
-    }
-    (req as any).user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      emailVerified: decodedToken.email_verified,
-      name: decodedToken.name,
-    };
-    return next();
-  } catch (error: any) {
-    console.log('[Server Auth] Token verification rejected:', error?.code || error?.message || 'Invalid or revoked token');
-    return res.status(401).json({ error: `Unauthorized: ${error?.message || 'Invalid or revoked token'}` });
-  }
 }
 
 /**
@@ -690,7 +689,7 @@ INVARIANTS:
  */
 app.post('/api/alerts/notify', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { alert, metricValue, recipientEmail, notificationDetails } = req.body;
+    const { alert, recipientEmail, notificationDetails } = req.body;
     if (!alert && !notificationDetails) {
       return res.status(400).json({ error: 'Missing alert or notification data' });
     }
@@ -727,7 +726,7 @@ app.post('/api/alerts/notify', requireAuth, async (req: Request, res: Response) 
  * GET /api/research/discover
  * Filter Indian companies by measurable fundamental characteristics (NSE & BSE)
  */
-app.get('/api/research/discover', async (req: Request, res: Response) => {
+app.get('/api/research/discover', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const {
       search,
@@ -876,7 +875,7 @@ app.get('/api/research/discover', async (req: Request, res: Response) => {
  * GET /api/research/search
  * Dynamic auto-suggest / search endpoint for 5,180+ Indian equities
  */
-app.get('/api/research/search', async (req: Request, res: Response) => {
+app.get('/api/research/search', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const q = (req.query.q as string) || '';
     const limit = parseInt(req.query.limit as string) || 15;
@@ -904,7 +903,7 @@ app.get('/api/research/search', async (req: Request, res: Response) => {
  * GET /api/research/browse
  * Paginated browsing across all 5,180+ Indian listed equities
  */
-app.get('/api/research/browse', async (req: Request, res: Response) => {
+app.get('/api/research/browse', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 25;
@@ -934,7 +933,7 @@ app.get('/api/research/browse', async (req: Request, res: Response) => {
  * GET /api/research/peers/:ticker
  * Peers in the same sector from the Indian company master
  */
-app.get('/api/research/peers/:ticker', async (req: Request, res: Response) => {
+app.get('/api/research/peers/:ticker', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const { ticker } = req.params;
     const peers = await IndianMarketDataProvider.getPeerCompanies(ticker, 4);
@@ -953,7 +952,7 @@ app.get('/api/research/peers/:ticker', async (req: Request, res: Response) => {
  * GET /api/research/company/:ticker
  * Full fundamental company profile with NSE/BSE filings, growth analysis, catalysts & risks in INR
  */
-app.get('/api/research/company/:ticker', async (req: Request, res: Response) => {
+app.get('/api/research/company/:ticker', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const { ticker } = req.params;
     if (!ticker) return res.status(400).json({ error: 'Missing ticker symbol' });
@@ -987,7 +986,7 @@ app.get('/api/research/company/:ticker', async (req: Request, res: Response) => 
  * GET /api/research/quote/:ticker
  * Current market quote in INR
  */
-app.get('/api/research/quote/:ticker', async (req: Request, res: Response) => {
+app.get('/api/research/quote/:ticker', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const { ticker } = req.params;
     const quote = await IndianMarketDataProvider.getQuote(ticker);
@@ -1009,7 +1008,7 @@ app.get('/api/research/quote/:ticker', async (req: Request, res: Response) => {
  * GET /api/research/prices/:ticker
  * Historical prices in INR
  */
-app.get('/api/research/prices/:ticker', async (req: Request, res: Response) => {
+app.get('/api/research/prices/:ticker', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const { ticker } = req.params;
     const range = (req.query.range as any) || '1Y';
@@ -1025,7 +1024,7 @@ app.get('/api/research/prices/:ticker', async (req: Request, res: Response) => {
  * GET /api/research/compare
  * Side-by-side comparison of Indian companies
  */
-app.get('/api/research/compare', async (req: Request, res: Response) => {
+app.get('/api/research/compare', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const tickersParam = req.query.tickers as string;
     if (!tickersParam) return res.status(400).json({ error: 'Missing tickers parameter' });
@@ -1054,7 +1053,7 @@ app.get('/api/research/compare', async (req: Request, res: Response) => {
  * GET /api/research/sec/:ticker/filings
  * Official SEC EDGAR filings list with direct sec.gov links
  */
-app.get('/api/research/sec/:ticker/filings', async (req: Request, res: Response) => {
+app.get('/api/research/sec/:ticker/filings', rateLimitMiddleware(120, 60000, 'research'), async (req: Request, res: Response) => {
   try {
     const { ticker } = req.params;
     const cik = await SECDataProvider.getCIKForTicker(ticker);
@@ -1078,11 +1077,250 @@ app.get('/api/research/sec/:ticker/filings', async (req: Request, res: Response)
  * GET /api/research/glossary
  * Educational glossary terms explaining fundamental concepts
  */
-app.get('/api/research/glossary', (_req: Request, res: Response) => {
+app.get('/api/research/glossary', rateLimitMiddleware(120, 60000, 'research'), (_req: Request, res: Response) => {
   return res.json({
     success: true,
     terms: RESEARCH_GLOSSARY_TERMS,
   });
+});
+
+/**
+ * ============================================================================
+ * LIVE CURRENCY CONVERSION (FX) ENGINE
+ * Keyless, in-memory cached, rate-limited, fail-safe foreign exchange endpoint
+ * ============================================================================
+ */
+const ALLOWED_FX_CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SGD', 'CAD', 'AUD', 'SAR', 'KWD'] as const;
+
+interface FxRatesCacheEntry {
+  base: 'INR';
+  rates: Record<string, number>;
+  provider: string;
+  providerUrl: string;
+  attributionText: string;
+  termsUrl: string;
+  publishedDate: string;
+  publishedTimestamp: number;
+  fetchedAt: number;
+}
+
+let fxRatesCache: FxRatesCacheEntry | null = null;
+let fxRatesInFlightPromise: Promise<FxRatesCacheEntry> | null = null;
+const FX_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour minimum cache
+const FX_BACKOFF_MS = 15 * 60 * 1000; // 15 minutes failure back-off
+let fxBackoffUntil = 0;
+
+function isValidUpstreamRate(val: unknown): val is number {
+  return typeof val === 'number' && Number.isFinite(val) && val > 0;
+}
+
+async function fetchUpstreamFxRates(): Promise<FxRatesCacheEntry> {
+  // Primary upstream: open.er-api.com (keyless, full INR coverage including AED, SAR, KWD)
+  let primaryError: any = null;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch('https://open.er-api.com/v6/latest/INR', {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data: any = await res.json();
+      if (data && data.result === 'success' && data.rates && typeof data.rates === 'object') {
+        const rates: Record<string, number> = {};
+        for (const curr of ALLOWED_FX_CURRENCIES) {
+          const val = data.rates[curr];
+          if (!isValidUpstreamRate(val)) {
+            throw new Error(`Invalid or missing rate for ${curr} in primary upstream response`);
+          }
+          rates[curr] = val;
+        }
+
+        const publishedTimestamp = data.time_last_update_unix
+          ? data.time_last_update_unix * 1000
+          : data.time_last_update_utc
+          ? new Date(data.time_last_update_utc).getTime()
+          : Date.now();
+
+        const publishedDate = new Date(publishedTimestamp).toISOString().slice(0, 10);
+
+        return {
+          base: 'INR',
+          rates,
+          provider: 'Exchange Rate API',
+          providerUrl: 'https://www.exchangerate-api.com',
+          attributionText: 'Rates by Exchange Rate API',
+          termsUrl: 'https://www.exchangerate-api.com/terms',
+          publishedDate,
+          publishedTimestamp,
+          fetchedAt: Date.now(),
+        };
+      }
+    }
+  } catch (err) {
+    primaryError = err;
+    console.warn('[FX Rates] Primary upstream (open.er-api.com) failed or timed out:', err);
+  }
+
+  // Secondary keyless fallback: api.frankfurter.dev (ECB reference rates)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch('https://api.frankfurter.dev/v1/latest?base=INR', {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data: any = await res.json();
+      if (data && data.rates && typeof data.rates === 'object') {
+        const rates: Record<string, number> = {};
+        for (const curr of ALLOWED_FX_CURRENCIES) {
+          if (data.rates[curr] !== undefined) {
+            const val = data.rates[curr];
+            if (!isValidUpstreamRate(val)) {
+              throw new Error(`Invalid rate for ${curr} in fallback upstream response`);
+            }
+            rates[curr] = val;
+          }
+        }
+        if (Object.keys(rates).length === 0) {
+          throw new Error('Fallback upstream returned zero valid rates');
+        }
+        const publishedDate = data.date || new Date().toISOString().slice(0, 10);
+        const publishedTimestamp = new Date(publishedDate).getTime() || Date.now();
+
+        return {
+          base: 'INR',
+          rates,
+          provider: 'Frankfurter (ECB)',
+          providerUrl: 'https://frankfurter.dev',
+          attributionText: 'Rates by European Central Bank via Frankfurter',
+          termsUrl: 'https://frankfurter.dev/license',
+          publishedDate,
+          publishedTimestamp,
+          fetchedAt: Date.now(),
+        };
+      }
+    }
+  } catch (secErr) {
+    console.warn('[FX Rates] Secondary upstream (frankfurter.dev) failed or timed out:', secErr);
+  }
+
+  throw new Error(`Upstream FX providers unavailable. Primary: ${primaryError?.message || 'unknown'}`);
+}
+
+app.get('/api/fx/rates', requireAuth, rateLimitMiddleware(30, 60000, 'fx'), async (req: Request, res: Response) => {
+  try {
+    const { currencies } = req.query;
+    let requestedCurrencies: string[] = [];
+
+    if (typeof currencies === 'string' && currencies.trim().length > 0) {
+      const parsed = currencies.split(',').map((c) => c.trim().toUpperCase()).filter(Boolean);
+      for (const c of parsed) {
+        if (!ALLOWED_FX_CURRENCIES.includes(c as any)) {
+          return res.status(400).json({
+            error: 'INVALID_CURRENCY',
+            message: `Currency "${c}" is not supported. Allowed currencies: ${ALLOWED_FX_CURRENCIES.join(', ')}`,
+          });
+        }
+      }
+      requestedCurrencies = parsed;
+    }
+
+    const now = Date.now();
+    let isStale = false;
+    let entry: FxRatesCacheEntry;
+
+    // Check if currently in 15-minute failure back-off
+    if (now < fxBackoffUntil) {
+      if (fxRatesCache) {
+        entry = fxRatesCache;
+        isStale = true;
+      } else {
+        return res.status(503).json({
+          error: 'UPSTREAM_UNAVAILABLE',
+          message: 'Currency exchange rates are temporarily unavailable. Please try again later.',
+        });
+      }
+    } else if (fxRatesCache && (now - fxRatesCache.fetchedAt < FX_CACHE_TTL_MS)) {
+      // Check if in-memory cache is fresh
+      entry = fxRatesCache;
+    } else {
+      // Coalesce concurrent refreshes
+      if (!fxRatesInFlightPromise) {
+        fxRatesInFlightPromise = fetchUpstreamFxRates()
+          .then((fresh) => {
+            // If fallback returned fewer currencies than existing cache, do not replace cache & trigger back-off
+            if (fxRatesCache && Object.keys(fresh.rates).length < Object.keys(fxRatesCache.rates).length) {
+              console.warn('[FX Rates] Fallback returned fewer currencies than cached entry; keeping existing cache and setting failure back-off.');
+              fxBackoffUntil = Date.now() + FX_BACKOFF_MS;
+              return fxRatesCache;
+            }
+            fxRatesCache = fresh;
+            fxBackoffUntil = 0; // Success clears back-off
+            return fresh;
+          })
+          .catch((err) => {
+            fxBackoffUntil = Date.now() + FX_BACKOFF_MS;
+            throw err;
+          })
+          .finally(() => {
+            fxRatesInFlightPromise = null;
+          });
+      }
+
+      try {
+        const resultEntry = await fxRatesInFlightPromise;
+        if (fxRatesCache && resultEntry === fxRatesCache && (now - fxRatesCache.fetchedAt >= FX_CACHE_TTL_MS)) {
+          isStale = true;
+        }
+        entry = resultEntry;
+      } catch (upstreamErr) {
+        // On upstream failure, serve last good rates with "stale": true
+        if (fxRatesCache) {
+          entry = fxRatesCache;
+          isStale = true;
+          console.warn('[FX Rates] Serving stale cached rates due to upstream failure.');
+        } else {
+          return res.status(503).json({
+            error: 'UPSTREAM_UNAVAILABLE',
+            message: 'Currency exchange rates are temporarily unavailable. Please try again later.',
+          });
+        }
+      }
+    }
+
+    // Filter rates to requested currencies (or all allowed currencies)
+    const filteredRates: Record<string, number> = {};
+    const targetCurrencies = requestedCurrencies.length > 0 ? requestedCurrencies : ALLOWED_FX_CURRENCIES;
+    for (const c of targetCurrencies) {
+      if (typeof entry.rates[c] === 'number') {
+        filteredRates[c] = entry.rates[c];
+      }
+    }
+
+    return res.json({
+      base: entry.base,
+      rates: filteredRates,
+      provider: entry.provider,
+      providerUrl: entry.providerUrl,
+      attributionText: entry.attributionText,
+      termsUrl: entry.termsUrl,
+      publishedDate: entry.publishedDate,
+      publishedTimestamp: entry.publishedTimestamp,
+      stale: isStale,
+    });
+  } catch (error: any) {
+    console.error('[FX Rates Error]', error);
+    return res.status(500).json({
+      error: 'INTERNAL_ERROR',
+      message: 'Failed to process currency exchange rate request.',
+    });
+  }
 });
 
 /**
@@ -1212,13 +1450,25 @@ Provide a clear, structured, professional response adhering to the invariants. F
  * ============================================================================
  */
 
-function buildInvitationUrl(token: string): string {
+function buildInvitationUrl(token: string, req?: Request): string {
+  const isProd = process.env.NODE_ENV === 'production';
   const appUrl = process.env.APP_URL?.trim();
   const isLocalhost = !appUrl || appUrl.includes('localhost') || appUrl.includes('127.0.0.1');
-  if (!appUrl || isLocalhost) {
-    throw new Error('Server refusing to build invitation link: APP_URL must be configured with a non-localhost URL.');
+
+  if (isProd) {
+    if (!appUrl || isLocalhost) {
+      console.error('[invitations] Production mode requires APP_URL to be set to a non-localhost URL to generate invitation links.');
+      throw new Error('SERVICE_UNAVAILABLE: APP_URL environment variable is missing or set to localhost in production.');
+    }
+    return `${appUrl.replace(/\/$/, '')}/group-invite/${encodeURIComponent(token)}`;
   }
-  return `${appUrl.replace(/\/$/, '')}/group-invite/${encodeURIComponent(token)}`;
+
+  // Non-production (dev/testing) fallback
+  if (appUrl && !isLocalhost) {
+    return `${appUrl.replace(/\/$/, '')}/group-invite/${encodeURIComponent(token)}`;
+  }
+  const base = (req ? getBaseUrl(req) : '') || appUrl || 'http://localhost:3000';
+  return `${base.replace(/\/$/, '')}/group-invite/${encodeURIComponent(token)}`;
 }
 
 function getBaseUrl(req: Request): string {
@@ -1527,7 +1777,7 @@ app.get('/api/invitations/config', (req: Request, res: Response) => {
 app.post('/api/groups/:groupId/invitations', requireAuth, rateLimitMiddleware(10, 60000, 'grp-inv'), async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
-    const { email, phone, name, role = 'member', inviterName: explicitInviterName, groupData: clientGroupData } = req.body;
+    const { email, phone, name, role = 'member', inviterName: explicitInviterName } = req.body;
 
     const requesterUser = (req as any).user;
     const requesterUid = requesterUser?.uid || 'vault-user';
@@ -1635,9 +1885,10 @@ app.post('/api/groups/:groupId/invitations', requireAuth, rateLimitMiddleware(10
     if (existingPending) {
       let existingUrl: string;
       try {
-        existingUrl = buildInvitationUrl(existingPending.token);
+        existingUrl = buildInvitationUrl(existingPending.token, req);
       } catch (err: any) {
-        return res.status(500).json({ error: 'CONFIG_ERROR', message: err.message });
+        console.error('[invitations] Cannot build invitation URL for duplicate pending invitation:', err?.message || err);
+        return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Invitation service is temporarily unavailable.' });
       }
       return res.status(409).json({
         error: 'DUPLICATE_INVITATION',
@@ -1654,9 +1905,10 @@ app.post('/api/groups/:groupId/invitations', requireAuth, rateLimitMiddleware(10
     const invitationId = `inv_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     let inviteUrl: string;
     try {
-      inviteUrl = buildInvitationUrl(token);
+      inviteUrl = buildInvitationUrl(token, req);
     } catch (err: any) {
-      return res.status(500).json({ error: 'CONFIG_ERROR', message: err.message });
+      console.error('[invitations] Cannot build invitation URL for new invitation:', err?.message || err);
+      return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Invitation service is temporarily unavailable.' });
     }
 
     // 10. Send through provider
@@ -1876,9 +2128,10 @@ app.post('/api/groups/:groupId/invitations/:invitationId/resend', requireAuth, r
 
     let inviteUrl: string;
     try {
-      inviteUrl = buildInvitationUrl(invitation.token);
+      inviteUrl = buildInvitationUrl(invitation.token, req);
     } catch (err: any) {
-      return res.status(500).json({ error: 'CONFIG_ERROR', message: err.message });
+      console.error('[resend] Cannot build invitation URL for resend:', err?.message || err);
+      return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Invitation service is temporarily unavailable.' });
     }
 
     let deliveryStatus: 'sent' | 'pending' | 'failed' | 'not_configured' = 'pending';
@@ -2438,9 +2691,10 @@ app.post('/api/invitations/send-email', requireAuth, rateLimitMiddleware(10, 600
     // Server-built link and text; completely ignoring request-supplied inviterName, groupName, inviteUrl
     let inviteUrl: string;
     try {
-      inviteUrl = buildInvitationUrl(invitation.token);
+      inviteUrl = buildInvitationUrl(invitation.token, req);
     } catch (err: any) {
-      return res.status(500).json({ error: 'CONFIG_ERROR', message: err.message });
+      console.error('[send-email] Cannot build invitation URL for send-email:', err?.message || err);
+      return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Invitation service is temporarily unavailable.' });
     }
     const emailContent = generateMoneyVaultEmail({
       recipientName: invitation.recipientName,
@@ -2548,9 +2802,10 @@ app.post('/api/invitations/send-sms', requireAuth, rateLimitMiddleware(10, 60000
     // Server-built link and text; completely ignoring request-supplied inviterName, groupName, inviteUrl
     let inviteUrl: string;
     try {
-      inviteUrl = buildInvitationUrl(invitation.token);
+      inviteUrl = buildInvitationUrl(invitation.token, req);
     } catch (err: any) {
-      return res.status(500).json({ error: 'CONFIG_ERROR', message: err.message });
+      console.error('[send-sms] Cannot build invitation URL for send-sms:', err?.message || err);
+      return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Invitation service is temporarily unavailable.' });
     }
     const sender = group.ownerName || (req as any).user?.name || 'A Money Vault Member';
     const groupName = group.name || 'Money Vault Group';
@@ -2597,6 +2852,11 @@ app.get('/api/health', (_req: Request, res: Response) => {
 async function startServer() {
   const isProduction = process.env.NODE_ENV === 'production';
 
+  // Unknown /api routes must answer with JSON, never the web page.
+  app.use('/api', (_req: Request, res: Response) => {
+    res.status(404).json({ error: 'Not found.' });
+  });
+
   if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -2632,6 +2892,16 @@ async function startServer() {
   if (hostArgIdx !== -1 && process.argv[hostArgIdx + 1]) {
     host = process.argv[hostArgIdx + 1];
   }
+
+  // Last-resort error handler: JSON in, JSON out. Never leaks stack traces or internals.
+  app.use((err: any, _req: Request, res: Response, next: (e?: any) => void) => {
+    if (res.headersSent) return next(err);
+    const status = Number(err?.status || err?.statusCode);
+    if (status === 413) return res.status(413).json({ error: 'Request body too large.' });
+    if (status >= 400 && status < 500) return res.status(400).json({ error: 'Invalid request.' });
+    console.error('[Server] Unhandled request error:', err?.message || err);
+    return res.status(500).json({ error: 'Internal server error.' });
+  });
 
   const server = app.listen(port, host, () => {
     console.log(`Money Vault server active on http://${host}:${port}`);
@@ -2697,11 +2967,50 @@ async function startServer() {
 
 if (process.env.TEST_HARNESS !== 'true') {
   startServer();
+} else {
+  console.log('[Server] TEST_HARNESS is true; startServer skipped.');
 }
 
 export function setAdminDbForTesting(db: any) {
   adminDb = db;
 }
 
+export function getFxBackoffUntilForTesting(): number {
+  return fxBackoffUntil;
+}
+
+export function setFxBackoffUntilForTesting(val: number): void {
+  fxBackoffUntil = val;
+}
+
+export function setFxCacheForTesting(val: any): void {
+  fxRatesCache = val;
+}
+
+export function getFxCacheForTesting(): any {
+  return fxRatesCache;
+}
+
+export function resetRateLimitStoreForTesting(): void {
+  rateLimitStore.clear();
+}
+
+export function cleanupExpiredRateLimitsForTesting(now?: number): void {
+  cleanupExpiredRateLimits(now);
+}
+
+export function getRateLimitStoreSizeForTesting(): number {
+  return rateLimitStore.size;
+}
+
+export function setTrustProxyHopsForTesting(hops: number): void {
+  app.set('trust proxy', hops);
+}
+
+export function getTrustProxyHopsForTesting(): number {
+  return app.get('trust proxy');
+}
+
 export { app, memoryGroups, memoryInvitations, buildInvitationUrl, getBaseUrl };
+
 

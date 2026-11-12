@@ -1,4 +1,4 @@
-import { validateEmail, validatePhone } from '../../utils/invitationValidation';
+import { validateEmail,validatePhone } from '../../utils/invitationValidation';
 
 console.log('--- Testing Invitation Validation Utilities ---');
 

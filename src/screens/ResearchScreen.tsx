@@ -1,22 +1,17 @@
 import React from 'react';
 import {
-  Compass,
-  Bookmark,
-  Scale,
-  FileText,
-  Search,
-  BookOpen,
-  Sparkles,
-  TrendingUp,
+Compass,
+Bookmark,
+Scale,
+FileText
 } from 'lucide-react';
-import { useResearch, ResearchSubTab } from '../context/ResearchContext';
+import { useResearch,ResearchSubTab } from '../context/ResearchContext';
 import { ResearchDiscoverView } from '../components/ResearchDiscoverView';
 import { CompanyProfileView } from '../components/CompanyProfileView';
 import { ResearchWatchlistView } from '../components/ResearchWatchlistView';
 import { ResearchCompareView } from '../components/ResearchCompareView';
 import { ResearchDisclaimerBanner } from '../components/ResearchDisclaimerBanner';
 import { EducationalGlossaryModal } from '../components/EducationalGlossaryModal';
-import { RESEARCH_GLOSSARY_TERMS } from '../constants/researchGlossary';
 
 export const ResearchScreen: React.FC = () => {
   const {

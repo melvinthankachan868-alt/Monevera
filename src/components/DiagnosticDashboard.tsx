@@ -1,25 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React,{ useState,useEffect,useCallback } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { firebaseConfig } from '../lib/firebase/config';
-import { auth, db } from '../lib/firebase/client';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth,db } from '../lib/firebase/client';
+import { doc,getDoc,setDoc } from 'firebase/firestore';
 import { diagnosticBus } from '../utils/diagnosticEventBus';
 import {
-  Activity,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  RefreshCw,
-  Database,
-  ShieldCheck,
-  HardDrive,
-  Copy,
-  Check,
-  Server,
-  Zap,
-  Clock,
-  Wifi,
-  WifiOff,
+Activity,
+CheckCircle2,
+AlertTriangle,RefreshCw,ShieldCheck,
+HardDrive,
+Copy,
+Check,
+Server,
+Zap
 } from 'lucide-react';
 
 interface DiagnosticState {

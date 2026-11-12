@@ -1,17 +1,10 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatDisplayDate } from '../utils/calculations';
+import { formatINR } from '../utils/calculations';
 import {
-  Bell,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  X,
-  Mail,
-  Trash2,
-  ExternalLink,
-  Check,
-  SlidersHorizontal,
+Bell,
+CheckCircle2,X,Trash2,
+ExternalLink,SlidersHorizontal
 } from 'lucide-react';
 
 interface NotificationCenterModalProps {

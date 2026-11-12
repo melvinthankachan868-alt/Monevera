@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { BUDGET_RATIO_PRESETS } from '../constants/defaults';
-import { formatINR, validateBudgetPercentages, calculateSalarySplit } from '../utils/calculations';
+import { formatINR,validateBudgetPercentages,calculateSalarySplit } from '../utils/calculations';
 import confetti from 'canvas-confetti';
-import { Check, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Check,AlertCircle,ArrowLeft } from 'lucide-react';
 
 interface BudgetSplitEditorProps {
   isOpen?: boolean;

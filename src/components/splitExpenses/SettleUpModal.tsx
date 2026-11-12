@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, ArrowRight, CheckCircle2, ShieldCheck, DollarSign, Calendar, Tag, CreditCard } from 'lucide-react';
+import React,{ useState } from 'react';
+import { X,ArrowRight,CheckCircle2,Calendar,CreditCard } from 'lucide-react';
 import { useFinTraQ } from '../../context/FinTraQContext';
-import { SplitGroup, SettlementRecommendation } from '../../types/splitExpenses';
+import { SplitGroup,SettlementRecommendation } from '../../types/splitExpenses';
 import { toDateString } from '../../utils/calculations';
 
 interface SettleUpModalProps {

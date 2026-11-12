@@ -1,23 +1,24 @@
-import React, { useState, useRef } from 'react';
+import React,{ useState,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import {
-  Camera,
-  Upload,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  RefreshCw,
-  Sparkles,
-  Receipt,
-  Tag,
-  Calendar,
-  CreditCard,
-  Building,
-  Edit3,
-  Check,
+Camera,
+Upload,
+X,
+CheckCircle2,
+AlertCircle,
+RefreshCw,
+Sparkles,
+Receipt,
+Tag,
+Calendar,
+CreditCard,
+Building,Check,
+LogIn
 } from 'lucide-react';
-import { formatINR, toDateString } from '../utils/calculations';
-import { CategoryType, PaymentMethod } from '../types';
+import { formatINR,toDateString } from '../utils/calculations';
+import { CategoryType,PaymentMethod } from '../types';
+import { AccountModal } from './AccountModal';
+import { SIGN_IN_PROMPT,SESSION_EXPIRED_MSG,getAiErrorMessage } from '../utils/aiErrorHelper';
 
 interface ReceiptScanModalProps {
   isOpen: boolean;
@@ -67,6 +68,8 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ExtractedReceiptData | null>(null);
 
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+
   // Editable review fields
   const [merchant, setMerchant] = useState('');
   const [amountStr, setAmountStr] = useState('');
@@ -99,6 +102,11 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
 
     // Reset input value so same file can be re-selected if needed
     e.target.value = '';
+
+    if (!user) {
+      setErrorMsg(SIGN_IN_PROMPT);
+      return;
+    }
 
     if (file.size === 0) {
       setErrorMsg('The selected file is empty (0 bytes).');
@@ -133,24 +141,37 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
   };
 
   const triggerOCR = async (base64Data: string, type: string) => {
+    if (!user) {
+      setIsScanning(false);
+      setErrorMsg(SIGN_IN_PROMPT);
+      return;
+    }
+
     setIsScanning(true);
     setErrorMsg(null);
     setScanResult(null);
 
     try {
+      let token = '';
+      try {
+        const idToken = await user.getIdToken();
+        if (idToken && typeof idToken === 'string' && idToken.trim().length > 0) {
+          token = idToken.trim();
+        }
+      } catch {
+        // Token error fallback
+      }
+
+      if (!token) {
+        setIsScanning(false);
+        setErrorMsg(SESSION_EXPIRED_MSG);
+        return;
+      }
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       };
-      if (user) {
-        try {
-          const token = await user.getIdToken();
-          if (token && typeof token === 'string' && token.trim().length > 0) {
-            headers['Authorization'] = `Bearer ${token.trim()}`;
-          }
-        } catch {
-          // Token error fallback
-        }
-      }
 
       const res = await fetch('/api/ocr/receipt', {
         method: 'POST',
@@ -162,8 +183,8 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
       });
 
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `Server OCR returned status ${res.status}`);
+        setErrorMsg(getAiErrorMessage(res.status));
+        return;
       }
 
       const data = await res.json();
@@ -187,14 +208,8 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
       setNotes(extracted.notes || extracted.summary || '');
     } catch (err: any) {
       console.error('OCR analysis failure:', err);
-      setErrorMsg(
-        err.message || 'Could not analyze receipt automatically. You can enter details manually below.'
-      );
-      // Fallback empty form for manual completion
-      setScanResult({
-        confidence: 'low',
-        merchant: 'Not detected',
-      });
+      setErrorMsg(getAiErrorMessage(500));
+      setScanResult(null);
     } finally {
       setIsScanning(false);
     }
@@ -277,9 +292,21 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
 
         {/* Error message */}
         {errorMsg && (
-          <div className="p-3.5 bg-rose-500/10 border border-rose-500/25 rounded-xl text-xs text-rose-400 flex items-start gap-2 animate-in fade-in">
-            <AlertCircle size={16} className="shrink-0 mt-0.5 text-rose-500" />
-            <span className="flex-1">{errorMsg}</span>
+          <div className="p-3.5 bg-rose-500/10 border border-rose-500/25 rounded-xl text-xs text-rose-400 flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-start gap-2 flex-1">
+              <AlertCircle size={16} className="shrink-0 mt-0.5 text-rose-500" />
+              <span>{errorMsg}</span>
+            </div>
+            {(errorMsg === SIGN_IN_PROMPT || errorMsg === SESSION_EXPIRED_MSG || !user) && (
+              <button
+                type="button"
+                onClick={() => setAccountModalOpen(true)}
+                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--mv-primary)] text-slate-950 font-bold hover:brightness-110 transition-all cursor-pointer text-xs shadow-xs"
+              >
+                <LogIn size={13} />
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -543,6 +570,11 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({
           </div>
         )}
       </div>
+
+      <AccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+      />
     </div>
   );
 };

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState,useEffect,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { Subscription, PaymentMethod } from '../types';
-import { formatINR, toDateString } from '../utils/calculations';
-import { Repeat, X, Trash2, Calendar, CheckCircle2, CreditCard, Bell, Sparkles } from 'lucide-react';
+import { Subscription,PaymentMethod } from '../types';
+import { toDateString } from '../utils/calculations';
+import { Repeat,X,Trash2,CheckCircle2 } from 'lucide-react';
 
 interface SubscriptionModalProps {
   isOpen: boolean;

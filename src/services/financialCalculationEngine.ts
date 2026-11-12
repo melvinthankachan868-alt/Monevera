@@ -1,8 +1,8 @@
 import {
-  AnnualFinancials,
-  NormalizedGrowthCalculations,
-  EarlyStageCharacteristic,
-  ValuationMetrics,
+AnnualFinancials,
+NormalizedGrowthCalculations,
+EarlyStageCharacteristic,
+ValuationMetrics,
 } from '../types/research';
 
 /**

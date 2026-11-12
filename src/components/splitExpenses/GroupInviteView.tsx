@@ -1,26 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import {
-  Users,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  ArrowRight,
-  Shield,
-  Sparkles,
-  LogIn,
-  UserPlus,
-  Mail,
-  Lock,
-  User,
-  AlertTriangle,
+Users,
+CheckCircle2,
+AlertCircle,ArrowRight,LogIn,
+UserPlus,
+Mail,
+Lock,
+User,
+AlertTriangle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useFinTraQ } from '../../context/FinTraQContext';
-import { GroupInvitation, SplitGroup } from '../../types/splitExpenses';
+import { GroupInvitation,SplitGroup } from '../../types/splitExpenses';
 import {
-  fetchGroupInvitationByToken,
-  updateGroupInvitationStatus,
-  fetchSharedGroup,
+fetchGroupInvitationByToken,
+updateGroupInvitationStatus,
+fetchSharedGroup,
 } from '../../db/cloudFirestore';
 import { MoneyVaultLogo } from '../MoneyVaultLogo';
 

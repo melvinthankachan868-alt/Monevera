@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { CloudUpload, AlertCircle, RefreshCw } from 'lucide-react';
+import { CloudUpload,AlertCircle,RefreshCw } from 'lucide-react';
 
 export const MigrationModal: React.FC = () => {
   const {

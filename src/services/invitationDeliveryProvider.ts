@@ -4,8 +4,7 @@
  * Implements strict delivery reporting: NEVER falsely claims delivered if provider unconfigured.
  */
 
-import { GroupInvitation, SplitGroup, DeliveryStatus } from '../types/splitExpenses';
-import { validateEmail, validatePhone } from '../utils/invitationValidation';
+import { GroupInvitation,SplitGroup,DeliveryStatus } from '../types/splitExpenses';
 
 export interface DeliveryResult {
   success: boolean;
@@ -196,16 +195,19 @@ export class InvitationDeliveryProvider {
       inviterName?: string;
       groupData?: SplitGroup;
     },
-    authToken?: string
+    authToken: string
   ): Promise<{
     success: boolean;
     invitation: GroupInvitation;
     deliveryResult: DeliveryResult;
   }> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (authToken && typeof authToken === 'string' && authToken.trim().length > 0) {
-      headers['Authorization'] = `Bearer ${authToken.trim()}`;
+    if (!authToken || typeof authToken !== 'string' || authToken.trim().length === 0) {
+      throw new Error('Authentication token is required to create group invitation');
     }
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken.trim()}`,
+    };
 
     const response = await fetch(`/api/groups/${encodeURIComponent(groupId)}/invitations`, {
       method: 'POST',
@@ -250,12 +252,15 @@ export class InvitationDeliveryProvider {
   public static async resendGroupInvitation(
     groupId: string,
     invitationId: string,
-    authToken?: string
+    authToken: string
   ): Promise<DeliveryResult> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (authToken && typeof authToken === 'string' && authToken.trim().length > 0) {
-      headers['Authorization'] = `Bearer ${authToken.trim()}`;
+    if (!authToken || typeof authToken !== 'string' || authToken.trim().length === 0) {
+      throw new Error('Authentication token is required to resend group invitation');
     }
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken.trim()}`,
+    };
 
     const response = await fetch(
       `/api/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}/resend`,
@@ -286,12 +291,15 @@ export class InvitationDeliveryProvider {
   public static async revokeGroupInvitation(
     groupId: string,
     invitationId: string,
-    authToken?: string
+    authToken: string
   ): Promise<{ success: boolean; message: string }> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (authToken && typeof authToken === 'string' && authToken.trim().length > 0) {
-      headers['Authorization'] = `Bearer ${authToken.trim()}`;
+    if (!authToken || typeof authToken !== 'string' || authToken.trim().length === 0) {
+      throw new Error('Authentication token is required to revoke group invitation');
     }
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken.trim()}`,
+    };
 
     const response = await fetch(
       `/api/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}/revoke`,
@@ -374,8 +382,8 @@ export class InvitationDeliveryProvider {
   public static async sendEmailInvitation(
     invitation: GroupInvitation,
     recipientEmail: string,
-    recipientName?: string,
-    authToken?: string
+    recipientName: string | undefined,
+    authToken: string
   ): Promise<DeliveryResult> {
     if (!authToken || typeof authToken !== 'string' || authToken.trim().length === 0) {
       throw new Error('Authentication token is required to send email invitations');
@@ -434,7 +442,7 @@ export class InvitationDeliveryProvider {
   public static async sendSmsInvitation(
     invitation: GroupInvitation,
     phoneNumber: string,
-    authToken?: string
+    authToken: string
   ): Promise<DeliveryResult> {
     if (!authToken || typeof authToken !== 'string' || authToken.trim().length === 0) {
       throw new Error('Authentication token is required to send SMS invitations');

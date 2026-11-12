@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { firebaseConfig } from '../lib/firebase/config';
 import {
-  User as UserIcon,
-  LogIn,
-  LogOut,
-  X,
-  ShieldCheck,
-  Cloud,
-  Trash2,
-  AlertTriangle,
-  RefreshCw,
+User as UserIcon,
+LogIn,
+LogOut,
+X,
+ShieldCheck,
+Cloud,
+Trash2,
+AlertTriangle,
+RefreshCw,
 } from 'lucide-react';
 
 interface AccountModalProps {

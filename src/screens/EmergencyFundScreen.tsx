@@ -1,18 +1,11 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatDisplayDate } from '../utils/calculations';
+import { formatINR,formatDisplayDate } from '../utils/calculations';
 import {
-  ShieldCheck,
-  Settings,
-  Plus,
-  Minus,
-  AlertCircle,
-  TrendingUp,
-  Sparkles,
-  Calendar,
-  CheckCircle,
-  Clock,
-  ArrowRight,
+ShieldCheck,
+Settings,
+Plus,
+Minus,Sparkles
 } from 'lucide-react';
 
 export const EmergencyFundScreen: React.FC = () => {

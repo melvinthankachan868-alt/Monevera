@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState,useEffect,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { FinancialGoal, GoalCategory } from '../types';
-import { formatINR, toDateString } from '../utils/calculations';
-import { Target, X, Trash2, Calendar, Plus, CheckCircle2, Sparkles, TrendingUp } from 'lucide-react';
+import { FinancialGoal,GoalCategory } from '../types';
+import { formatINR,toDateString } from '../utils/calculations';
+import { Target,X,Trash2,Plus,CheckCircle2 } from 'lucide-react';
 
 interface FinancialGoalModalProps {
   isOpen: boolean;

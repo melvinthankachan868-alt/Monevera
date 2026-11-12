@@ -4,7 +4,7 @@
  * cross-referenced from official NSE (EQUITY_L) and BSE Cash Market instruments.
  */
 
-import { IndianCompanyMasterRecord, SectorCategory } from '../types/research';
+import { IndianCompanyMasterRecord } from '../types/research';
 import indianMasterRaw from '../data/indianCompanyMaster.json';
 
 export class IndianCompanyMasterService {

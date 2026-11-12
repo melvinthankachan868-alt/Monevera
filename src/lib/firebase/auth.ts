@@ -1,17 +1,17 @@
 import {
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut as fbSignOut,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendPasswordResetEmail as fbSendPasswordResetEmail,
-  onAuthStateChanged,
-  User,
-  Unsubscribe,
+signInWithPopup,
+signInWithRedirect,
+getRedirectResult,
+signOut as fbSignOut,
+signInWithEmailAndPassword,
+createUserWithEmailAndPassword,
+updateProfile,
+sendPasswordResetEmail as fbSendPasswordResetEmail,
+onAuthStateChanged,
+User,
+Unsubscribe,
 } from 'firebase/auth';
-import { auth, googleAuthProvider } from './client';
+import { auth,googleAuthProvider } from './client';
 import { handleAuthError } from './authErrors';
 
 /**

@@ -1,17 +1,14 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { exportFinancialStatementPDF } from '../utils/pdfExport';
 import { formatINR } from '../utils/calculations';
 import {
-  FileText,
-  Download,
-  Calendar,
-  CheckCircle2,
-  Lock,
-  Layers,
-  Sparkles,
-  PieChart,
-  Shield,
+FileText,
+Download,
+Calendar,
+CheckCircle2,
+Lock,
+Layers
 } from 'lucide-react';
 
 export const ReportsScreen: React.FC = () => {

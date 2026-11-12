@@ -1,17 +1,9 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import {
-  Bookmark,
-  Trash2,
-  Bell,
-  ArrowUpRight,
-  TrendingUp,
-  AlertCircle,
-  Plus,
-  Scale,
-  Sparkles,
-  Check,
-  X,
-  FileText,
+Bookmark,
+Trash2,
+Bell,Plus,
+Scale,X
 } from 'lucide-react';
 import { useResearch } from '../context/ResearchContext';
 import { ResearchAlertConfig } from '../types/research';

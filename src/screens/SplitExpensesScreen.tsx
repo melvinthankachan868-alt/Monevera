@@ -1,37 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React,{ useState,useMemo } from 'react';
 import {
-  Users,
-  Plus,
-  Receipt,
-  Scale,
-  CheckCircle2,
-  Share2,
-  Calendar,
-  ArrowRight,
-  TrendingUp,
-  Archive,
-  Edit2,
-  Trash2,
-  ChevronDown,
-  Sparkles,
-  Info,
-  DollarSign,
-  AlertCircle,
-  Clock,
-  Check,
-  UserPlus,
-  Activity,
-  ShieldCheck,
-  Crown,
-  UserX,
-  Mail,
-  Phone,
-  Lock,
-  X,
+Users,
+Plus,
+Receipt,
+Scale,
+CheckCircle2,
+Share2,ArrowRight,Archive,
+Edit2,
+Trash2,Info,AlertCircle,
+Clock,
+Check,
+UserPlus,
+Activity,
+ShieldCheck,
+Crown,
+UserX,
+Mail,Lock,
+X
 } from 'lucide-react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { SplitGroup, GroupExpense, SettlementRecommendation, GroupMember } from '../types/splitExpenses';
-import { formatINR } from '../utils/calculations';
+import { SplitGroup,GroupExpense,SettlementRecommendation,GroupMember } from '../types/splitExpenses';
 import { CreateGroupModal } from '../components/splitExpenses/CreateGroupModal';
 import { AddGroupExpenseModal } from '../components/splitExpenses/AddGroupExpenseModal';
 import { SettleUpModal } from '../components/splitExpenses/SettleUpModal';

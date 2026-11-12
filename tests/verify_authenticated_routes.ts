@@ -1,7 +1,9 @@
+import './setup_test_harness';
 process.env.TEST_HARNESS = 'true';
 
 import { getAuth } from 'firebase-admin/auth';
 import firebaseConfig from '../firebase-applet-config.json' with { type: 'json' };
+process.env.TEST_HARNESS = 'true';
 import { app, memoryGroups, memoryInvitations, setAdminDbForTesting } from '../server';
 
 interface TestRecord {

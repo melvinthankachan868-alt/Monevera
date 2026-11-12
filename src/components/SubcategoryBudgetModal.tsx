@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { CategoryType, Subcategory } from '../types';
+import { CategoryType,Subcategory } from '../types';
 import { CategoryIcon } from './CategoryIcon';
-import { formatINR, calculateSubcategorySpent } from '../utils/calculations';
-import { X, Check, ArrowLeft, AlertCircle } from 'lucide-react';
+import { formatINR,calculateSubcategorySpent } from '../utils/calculations';
+import { X,Check,ArrowLeft,AlertCircle } from 'lucide-react';
 
 interface SubcategoryBudgetModalProps {
   isOpen: boolean;

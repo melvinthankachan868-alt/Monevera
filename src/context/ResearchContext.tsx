@@ -1,21 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React,{ createContext,useContext,useState,useEffect,useCallback,useRef } from 'react';
 import {
-  CompanyResearchSummary,
-  CompanyResearchDetail,
-  ResearchFilterCriteria,
-  WatchlistCompanyItem,
-  ResearchAlertConfig,
-  EducationalGlossaryTerm,
+CompanyResearchSummary,
+CompanyResearchDetail,
+ResearchFilterCriteria,
+WatchlistCompanyItem,
+ResearchAlertConfig,
+EducationalGlossaryTerm,
 } from '../types/research';
 import { RESEARCH_GLOSSARY_TERMS } from '../constants/researchGlossary';
 import { useFinTraQ } from './FinTraQContext';
+import { SIGN_IN_PROMPT,SESSION_EXPIRED_MSG,RATE_LIMIT_MSG,getAiErrorMessage } from '../utils/aiErrorHelper';
 import {
-  saveResearchWatchlistItemToCloud,
-  deleteResearchWatchlistItemFromCloud,
-  getResearchWatchlistFromCloud,
-  saveResearchAlertToCloud,
-  deleteResearchAlertFromCloud,
-  getResearchAlertsFromCloud,
+saveResearchWatchlistItemToCloud,
+deleteResearchWatchlistItemFromCloud,
+getResearchWatchlistFromCloud,
+saveResearchAlertToCloud,
+deleteResearchAlertFromCloud,
+getResearchAlertsFromCloud,
 } from '../db/cloudFirestore';
 
 export type ResearchSubTab = 'discover' | 'profile' | 'watchlist' | 'compare' | 'reports' | 'ai';
@@ -46,6 +47,7 @@ interface ResearchContextType {
   // Broad Indian Equity Search (5,180+ universe) with debounce & race condition protection
   searchResults: CompanyResearchSummary[];
   isSearching: boolean;
+  searchError: string | null;
   searchIndianEquities: (query: string) => Promise<CompanyResearchSummary[]>;
 
   // Paginated Broader Discovery (5,180+ universe)
@@ -54,6 +56,7 @@ interface ResearchContextType {
   browseTotalPages: number;
   browseTotalCount: number;
   isLoadingBrowse: boolean;
+  browseError: string | null;
   setBrowsePage: (page: number) => void;
   refreshBrowse: () => Promise<void>;
 
@@ -128,6 +131,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Broad Indian Equity Search (5,180+ universe) with debounce & race condition protection
   const [searchResults, setSearchResults] = useState<CompanyResearchSummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const searchAbortControllerRef = useRef<AbortController | null>(null);
   const searchRequestIdRef = useRef<number>(0);
 
@@ -137,6 +141,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [browseTotalPages, setBrowseTotalPages] = useState<number>(1);
   const [browseTotalCount, setBrowseTotalCount] = useState<number>(0);
   const [isLoadingBrowse, setIsLoadingBrowse] = useState<boolean>(false);
+  const [browseError, setBrowseError] = useState<string | null>(null);
 
   const [watchlist, setWatchlist] = useState<WatchlistCompanyItem[]>(() => {
     try {
@@ -228,7 +233,10 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (filters.positiveFCFOnly) params.set('positiveFCFOnly', 'true');
 
       const res = await fetch(`/api/research/discover?${params.toString()}`);
-      if (!res.ok) throw new Error(`Discovery returned status ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 429) throw new Error(RATE_LIMIT_MSG);
+        throw new Error(`Discovery returned status ${res.status}`);
+      }
       const data = await res.json();
       setCompanies(data.companies || []);
     } catch (err: any) {
@@ -256,23 +264,36 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     if (!query || !query.trim()) {
       setSearchResults([]);
+      setSearchError(null);
       setIsSearching(false);
       return [];
     }
 
     setIsSearching(true);
+    setSearchError(null);
     try {
       const res = await fetch(`/api/research/search?q=${encodeURIComponent(query.trim())}&limit=12`, {
         signal: controller.signal,
       });
 
-      if (!res.ok) throw new Error(`Search error status: ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 429) {
+          if (currentReqId === searchRequestIdRef.current) {
+            setSearchError(RATE_LIMIT_MSG);
+            setSearchResults([]);
+            setIsSearching(false);
+          }
+          return [];
+        }
+        throw new Error(`Search error status: ${res.status}`);
+      }
       const data = await res.json();
 
       if (currentReqId === searchRequestIdRef.current) {
         const results = data.results || [];
         setSearchResults(results);
         setIsSearching(false);
+        setSearchError(null);
         return results;
       }
       return [];
@@ -291,6 +312,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Paginated Browse over 5,180+ companies
   const refreshBrowse = useCallback(async () => {
     setIsLoadingBrowse(true);
+    setBrowseError(null);
     try {
       const params = new URLSearchParams();
       params.set('page', String(browsePage));
@@ -300,14 +322,21 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (filters.searchQuery) params.set('search', filters.searchQuery);
 
       const res = await fetch(`/api/research/browse?${params.toString()}`);
-      if (!res.ok) throw new Error(`Browse error status ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 429) {
+          setBrowseError(RATE_LIMIT_MSG);
+          return;
+        }
+        throw new Error(`Browse error status ${res.status}`);
+      }
       const data = await res.json();
 
       setBrowseCompaniesList(data.companies || []);
       setBrowseTotalCount(data.totalCount || 0);
       setBrowseTotalPages(data.totalPages || 1);
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Browse request error:', err);
+      setBrowseError(err?.message || 'Could not load browse data');
     } finally {
       setIsLoadingBrowse(false);
     }
@@ -325,6 +354,9 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const res = await fetch(`/api/research/company/${encodeURIComponent(ticker.toUpperCase())}`);
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error(RATE_LIMIT_MSG);
+        }
         throw new Error(`Company profile for ${ticker} returned status ${res.status}`);
       }
       const data = await res.json();
@@ -476,21 +508,44 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Ask Mike Research
   const askMikeResearch = async (query: string, tickerContext?: string): Promise<string> => {
+    if (!user) {
+      return SIGN_IN_PROMPT;
+    }
+
     setIsMikeResearching(true);
     try {
+      let token = '';
+      try {
+        const idToken = await user.getIdToken();
+        if (idToken && typeof idToken === 'string' && idToken.trim().length > 0) {
+          token = idToken.trim();
+        }
+      } catch {
+        // Token retrieval fallback
+      }
+
+      if (!token) {
+        return SESSION_EXPIRED_MSG;
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+
       const res = await fetch('/api/research/ask-mike', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ query, tickerContext }),
       });
       if (!res.ok) {
-        throw new Error(`Research inquiry returned status ${res.status}`);
+        return getAiErrorMessage(res.status);
       }
       const data = await res.json();
       return data.reply;
     } catch (err: any) {
       console.error('Ask Mike research error:', err);
-      return `Mike could not complete the research query: ${err.message || 'Unknown network error'}.`;
+      return getAiErrorMessage(500);
     } finally {
       setIsMikeResearching(false);
     }
@@ -518,12 +573,14 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         refreshDiscovery,
         searchResults,
         isSearching,
+        searchError,
         searchIndianEquities,
         browseCompaniesList,
         browsePage,
         browseTotalPages,
         browseTotalCount,
         isLoadingBrowse,
+        browseError,
         setBrowsePage,
         refreshBrowse,
         activeProfile,

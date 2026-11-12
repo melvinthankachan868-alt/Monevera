@@ -1,4 +1,4 @@
-import { auth, db } from './client';
+import { auth,db } from './client';
 import { firebaseConfig } from './config';
 
 export interface FirebaseDiagnosticsResult {

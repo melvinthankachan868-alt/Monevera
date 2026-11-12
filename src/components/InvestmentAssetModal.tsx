@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState,useEffect,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { Investment, InvestmentType } from '../types';
-import { formatINR, toDateString } from '../utils/calculations';
-import { TrendingUp, X, Trash2, Calendar, DollarSign, Layers, Tag, FileText, CheckCircle2 } from 'lucide-react';
+import { Investment,InvestmentType } from '../types';
+import { toDateString } from '../utils/calculations';
+import { TrendingUp,X,Trash2,CheckCircle2 } from 'lucide-react';
 
 interface InvestmentAssetModalProps {
   isOpen: boolean;

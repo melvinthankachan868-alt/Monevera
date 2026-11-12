@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatDisplayDate } from '../utils/calculations';
-import { FinancialGoal, GoalCategory } from '../types';
+import { formatINR,formatDisplayDate } from '../utils/calculations';
 import {
-  Target,
-  Plus,
-  Trash2,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  ArrowRight,
-  TrendingUp,
-  Pencil,
+Target,
+Plus,
+Trash2,
+Calendar,
+CheckCircle2,Pencil
 } from 'lucide-react';
 
 export const GoalsScreen: React.FC = () => {

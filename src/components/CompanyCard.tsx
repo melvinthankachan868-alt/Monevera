@@ -1,14 +1,13 @@
 import React from 'react';
 import {
-  TrendingUp,
-  Bookmark,
-  BookmarkCheck,
-  ArrowUpRight,
-  ShieldCheck,
-  AlertTriangle,
-  Sparkles,
-  Info,
-  Scale,
+Bookmark,
+BookmarkCheck,
+ArrowUpRight,
+ShieldCheck,
+AlertTriangle,
+Sparkles,
+Info,
+Scale
 } from 'lucide-react';
 import { CompanyResearchSummary } from '../types/research';
 import { useResearch } from '../context/ResearchContext';

@@ -1,30 +1,30 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React,{ useState,useRef,useEffect } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, toDateString } from '../utils/calculations';
+import { formatINR,toDateString } from '../utils/calculations';
 import { ChatMessage } from '../types';
 import {
-  Sparkles,
-  Send,
-  Trash2,
-  Bot,
-  User,
-  Camera,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  Receipt,
-  PiggyBank,
-  Calendar,
-  Check,
-  Edit2,
-  RefreshCw,
+Sparkles,
+Send,
+Trash2,User,
+Camera,
+CheckCircle2,
+AlertCircle,Receipt,Check,
+Edit2,
+RefreshCw,
+LogIn
 } from 'lucide-react';
+import { AccountModal } from '../components/AccountModal';
+import { SIGN_IN_PROMPT,SESSION_EXPIRED_MSG,getAiErrorMessage } from '../utils/aiErrorHelper';
+
+const EMPTY_MESSAGES: ChatMessage[] = [];
 
 export const AIScreen: React.FC = () => {
   const {
     askFinTraQAI,
     chatMessages,
     isAiLoading,
+    aiStatusError,
+    clearAiStatusError,
     clearChatMessages,
     addExpense,
     setQuickAddOpen,
@@ -32,7 +32,10 @@ export const AIScreen: React.FC = () => {
     user,
   } = useFinTraQ();
 
+  const visibleMessages = user ? chatMessages : EMPTY_MESSAGES;
+
   const [inputPrompt, setInputPrompt] = useState('');
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [isProcessingReceipt, setIsProcessingReceipt] = useState(false);
   const [executedActions, setExecutedActions] = useState<Record<string, boolean>>({});
   const [cancelledActions, setCancelledActions] = useState<Record<string, boolean>>({});
@@ -46,11 +49,12 @@ export const AIScreen: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [chatMessages, isAiLoading, isProcessingReceipt]);
+  }, [visibleMessages, isAiLoading, isProcessingReceipt]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputPrompt.trim() || isAiLoading) return;
+    clearAiStatusError();
     const q = inputPrompt.trim();
     setInputPrompt('');
     await askFinTraQAI(q);
@@ -129,19 +133,26 @@ export const AIScreen: React.FC = () => {
   const processReceiptInChat = async (base64Data: string, mime: string) => {
     setIsProcessingReceipt(true);
     setUploadError(null);
+    clearAiStatusError();
+
+    // (1) If there is no signed-in user, do not call the server.
+    if (!user) {
+      setIsProcessingReceipt(false);
+      setUploadError(SIGN_IN_PROMPT);
+      return;
+    }
+
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
-      if (user) {
-        try {
-          const token = await user.getIdToken();
-          if (token && typeof token === 'string' && token.trim().length > 0) {
-            headers['Authorization'] = `Bearer ${token.trim()}`;
-          }
-        } catch {
-          // fallback
+      try {
+        const token = await user.getIdToken();
+        if (token && typeof token === 'string' && token.trim().length > 0) {
+          headers['Authorization'] = `Bearer ${token.trim()}`;
         }
+      } catch {
+        // fallback
       }
 
       const res = await fetch('/api/ocr/receipt', {
@@ -154,7 +165,10 @@ export const AIScreen: React.FC = () => {
       });
 
       if (!res.ok) {
-        throw new Error('Mike was unable to read the receipt. Please try another image.');
+        // Map status codes to honest messages: 401, 429, 503, other
+        const msg = getAiErrorMessage(res.status);
+        setUploadError(msg);
+        return;
       }
 
       const data = await res.json();
@@ -170,7 +184,7 @@ export const AIScreen: React.FC = () => {
       );
     } catch (err: any) {
       console.error('Chat receipt error:', err);
-      setUploadError('Mike is temporarily unavailable for receipt OCR. Please try again.');
+      setUploadError(getAiErrorMessage(500));
     } finally {
       setIsProcessingReceipt(false);
     }
@@ -209,7 +223,7 @@ export const AIScreen: React.FC = () => {
           </div>
         </div>
 
-        {chatMessages.length > 0 && (
+        {visibleMessages.length > 0 && (
           <button
             type="button"
             onClick={clearChatMessages}
@@ -223,7 +237,7 @@ export const AIScreen: React.FC = () => {
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-        {chatMessages.length === 0 ? (
+        {visibleMessages.length === 0 ? (
           <div className="py-8 text-center space-y-6 max-w-lg mx-auto">
             <div className="w-16 h-16 rounded-3xl bg-[var(--mv-surface)] border border-[var(--mv-border)] text-[var(--mv-primary)] flex items-center justify-center mx-auto shadow-sm">
               <Sparkles size={32} />
@@ -259,7 +273,7 @@ export const AIScreen: React.FC = () => {
             </div>
           </div>
         ) : (
-          chatMessages.map((msg: ChatMessage) => {
+          visibleMessages.map((msg: ChatMessage) => {
             const isUser = msg.role === 'user';
             const actionExecuted = executedActions[msg.id] || msg.actionProposal?.executed;
 
@@ -389,19 +403,69 @@ export const AIScreen: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {uploadError && (
-        <div className="mt-2 p-3 bg-[#2D1616] border border-[#FF7373]/30 text-[#FF7373] text-xs font-semibold rounded-2xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle size={15} />
-            <span>{uploadError}</span>
+      {/* AI Assistant Status / Error Banner (honest status, not stored in chat history) */}
+      {aiStatusError && (
+        <div className="mt-2 p-3.5 bg-[var(--mv-surface)] border border-[var(--mv-danger)]/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[var(--mv-danger)]/15 text-[var(--mv-danger)] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <AlertCircle size={15} />
+            </div>
+            <span className="text-xs font-semibold text-[var(--mv-text-primary)]">
+              {aiStatusError.message}
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setUploadError(null)}
-            className="text-[11px] underline font-bold cursor-pointer hover:opacity-80"
-          >
-            Dismiss
-          </button>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            {aiStatusError.requiresSignIn && (
+              <button
+                type="button"
+                onClick={() => setAccountModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-[var(--mv-primary)] text-[var(--mv-primary-text)] text-xs font-black hover:brightness-110 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+              >
+                <LogIn size={13} />
+                <span>Sign In</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={clearAiStatusError}
+              className="px-2.5 py-1.5 text-xs text-[var(--mv-text-secondary)] hover:text-[var(--mv-text-primary)] rounded-lg hover:bg-[var(--mv-surface-hover)] cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt OCR Upload Error Banner */}
+      {uploadError && (
+        <div className="mt-2 p-3.5 bg-[var(--mv-surface)] border border-[var(--mv-danger)]/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[var(--mv-danger)]/15 text-[var(--mv-danger)] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <AlertCircle size={15} />
+            </div>
+            <span className="text-xs font-semibold text-[var(--mv-text-primary)]">
+              {uploadError}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            {(uploadError === SIGN_IN_PROMPT || uploadError === SESSION_EXPIRED_MSG || !user) && (
+              <button
+                type="button"
+                onClick={() => setAccountModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-[var(--mv-primary)] text-[var(--mv-primary-text)] text-xs font-black hover:brightness-110 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+              >
+                <LogIn size={13} />
+                <span>Sign In</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setUploadError(null)}
+              className="px-2.5 py-1.5 text-xs text-[var(--mv-text-secondary)] hover:text-[var(--mv-text-primary)] rounded-lg hover:bg-[var(--mv-surface-hover)] cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
@@ -449,6 +513,14 @@ export const AIScreen: React.FC = () => {
           Mike provides verified guidance based on your Money Vault records. Important financial entries always require your confirmation.
         </div>
       </form>
+
+      {/* Account Modal for Sign-In Flow */}
+      {accountModalOpen && (
+        <AccountModal
+          isOpen={accountModalOpen}
+          onClose={() => setAccountModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

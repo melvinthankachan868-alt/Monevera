@@ -4,12 +4,12 @@
  */
 
 import {
-  CompanyResearchDetail,
-  AnnualFinancials,
-  QuarterlyFinancials,
-  ShareholdingPattern,
-  CorporateActionItem,
-  IndianFilingReference,
+CompanyResearchDetail,
+AnnualFinancials,
+QuarterlyFinancials,
+ShareholdingPattern,
+CorporateActionItem,
+IndianFilingReference,
 } from '../types/research';
 import { FinancialCalculationEngine } from '../services/financialCalculationEngine';
 

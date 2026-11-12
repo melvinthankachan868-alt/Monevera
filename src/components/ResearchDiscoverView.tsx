@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import {
-  Search,
-  SlidersHorizontal,
-  RotateCcw,
-  Sparkles,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
-  Filter,
-  Layers,
-  ChevronDown,
-  Building2,
-  AlertTriangle,
-  ArrowUpRight,
-  ChevronLeft,
-  ChevronRight,
-  Database,
-  Globe,
-  Loader2,
+Search,
+SlidersHorizontal,
+RotateCcw,
+Sparkles,
+TrendingUp,
+ShieldCheck,
+Zap,
+Filter,
+Layers,
+ChevronDown,
+Building2,
+AlertTriangle,
+ArrowUpRight,
+ChevronLeft,
+ChevronRight,
+Database,
+Globe,
+Loader2,
 } from 'lucide-react';
 import { useResearch } from '../context/ResearchContext';
 import { CompanyCard } from './CompanyCard';
-import { SectorCategory, MarketCapCategory } from '../types/research';
+import { SectorCategory,MarketCapCategory } from '../types/research';
 import { formatINR } from '../utils/indianCurrencyFormatter';
 
 const SECTORS: (SectorCategory | 'All')[] = [
@@ -62,12 +62,15 @@ export const ResearchDiscoverView: React.FC = () => {
     // Broad Search & Browse
     searchResults,
     isSearching,
+    searchError,
     searchIndianEquities,
     browseCompaniesList,
     browsePage,
     browseTotalPages,
     browseTotalCount,
     isLoadingBrowse,
+    browseError,
+    refreshBrowse,
     setBrowsePage,
   } = useResearch();
 
@@ -157,8 +160,18 @@ export const ResearchDiscoverView: React.FC = () => {
               </div>
             )}
 
+            {/* Search error popover if rate-limited or failed */}
+            {isFocused && searchInput.trim().length > 0 && searchError && (
+              <div
+                className="absolute z-30 left-0 right-0 top-12 rounded-3xl bg-[var(--mv-surface)] border border-rose-500/30 shadow-xl p-4 text-center space-y-1 backdrop-blur-md"
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <p className="text-xs font-bold text-rose-500">{searchError}</p>
+              </div>
+            )}
+
             {/* Quick Compact Results Popover when user types query */}
-            {isFocused && searchInput.trim().length > 0 && searchResults.length > 0 && (
+            {isFocused && searchInput.trim().length > 0 && searchResults.length > 0 && !searchError && (
               <div
                 className="absolute z-30 left-0 right-0 top-12 max-h-96 overflow-y-auto rounded-3xl bg-[var(--mv-surface)] border border-[var(--mv-border)] shadow-xl p-3 space-y-2 backdrop-blur-md"
                 onMouseDown={(e) => e.preventDefault()}
@@ -542,7 +555,18 @@ export const ResearchDiscoverView: React.FC = () => {
           </div>
 
           {/* Browse Table / Grid */}
-          {isLoadingBrowse ? (
+          {browseError ? (
+            <div className="p-8 text-center space-y-3 bg-rose-500/10 border border-rose-500/25 rounded-2xl text-rose-400 text-xs">
+              <p>{browseError}</p>
+              <button
+                type="button"
+                onClick={refreshBrowse}
+                className="px-4 py-2 bg-[var(--mv-surface)] border border-[var(--mv-border)] rounded-xl text-xs font-bold text-[var(--mv-text-primary)] cursor-pointer"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : isLoadingBrowse ? (
             <div className="py-24 text-center space-y-3">
               <div className="w-10 h-10 rounded-2xl bg-[var(--mv-primary)]/15 border border-[var(--mv-primary)] text-[var(--mv-primary)] flex items-center justify-center mx-auto animate-spin">
                 <Globe size={20} />

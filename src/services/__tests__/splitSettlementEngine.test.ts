@@ -1,5 +1,5 @@
 import { SplitSettlementEngine } from '../splitSettlementEngine';
-import { GroupMember, GroupExpense, GroupSettlement } from '../../types/splitExpenses';
+import { GroupMember,GroupExpense,GroupSettlement } from '../../types/splitExpenses';
 
 function assert(condition: boolean, msg: string) {
   if (!condition) {

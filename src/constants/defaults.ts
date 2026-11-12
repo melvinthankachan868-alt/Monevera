@@ -1,4 +1,4 @@
-import { Subcategory, AppSettings } from '../types';
+import { Subcategory,AppSettings } from '../types';
 
 export const DEFAULT_SUBCATEGORIES: Subcategory[] = [
   // Needs
@@ -30,6 +30,7 @@ export const DEFAULT_SUBCATEGORIES: Subcategory[] = [
 
 export const DEFAULT_SETTINGS: AppSettings = {
   currency: 'INR',
+  secondaryCurrencies: [],
   needsPercentage: 50,
   wantsPercentage: 30,
   savingsPercentage: 20,

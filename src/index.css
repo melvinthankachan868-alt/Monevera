@@ -119,10 +119,10 @@ body.light,
   --mv-cyan: #0369A1;
   --mv-cyan-soft: rgba(3, 105, 161, 0.1);
 
-  --mv-amber: #B45309;
-  --mv-amber-soft: rgba(180, 83, 9, 0.1);
-  --mv-warning: #B45309;
-  --mv-warning-soft: rgba(180, 83, 9, 0.1);
+  --mv-amber: #D97706;
+  --mv-amber-soft: rgba(217, 119, 6, 0.1);
+  --mv-warning: #EA580C;
+  --mv-warning-soft: rgba(234, 88, 12, 0.1);
 
   --mv-danger: #DC2626;
   --mv-danger-soft: rgba(220, 38, 38, 0.1);

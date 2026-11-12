@@ -1,18 +1,14 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatDisplayDate } from '../utils/calculations';
+import { formatINR,formatDisplayDate } from '../utils/calculations';
 import {
-  PiggyBank,
-  Plus,
-  ShieldCheck,
-  TrendingUp,
-  Trash2,
-  Wallet,
-  ArrowUpRight,
-  Target,
-  Sparkles,
-  ArrowRight,
-  Pencil,
+PiggyBank,
+Plus,
+ShieldCheck,
+TrendingUp,
+Trash2,
+Wallet,ArrowRight,
+Pencil
 } from 'lucide-react';
 
 export const SavingsScreen: React.FC = () => {

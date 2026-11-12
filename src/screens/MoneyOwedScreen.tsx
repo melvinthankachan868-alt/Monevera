@@ -1,24 +1,17 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { MoneyOwed, MoneyOwedType } from '../types';
-import { formatINR, calculateDueDateStatus, formatDisplayDate } from '../utils/calculations';
+import { MoneyOwed,MoneyOwedType } from '../types';
+import { formatINR,calculateDueDateStatus,formatDisplayDate } from '../utils/calculations';
 import { MoneyOwedModal } from '../components/MoneyOwedModal';
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Plus,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  Calendar,
-  History,
-  Trash2,
-  Info,
-  ChevronDown,
-  ChevronUp,
-  CreditCard,
-  User,
-  Users,
+ArrowDownLeft,
+ArrowUpRight,
+Plus,
+Clock,History,
+Trash2,
+Info,
+ChevronDown,
+ChevronUp,Users
 } from 'lucide-react';
 
 export const MoneyOwedScreen: React.FC = () => {

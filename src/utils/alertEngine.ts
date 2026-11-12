@@ -6,23 +6,23 @@
  */
 
 import {
-  Alert,
-  AlertHistory,
-  Expense,
-  Income,
-  SavingsRecord,
-  Investment,
-  FinancialGoal,
-  MonthlyFinancialSummary,
-  MoneyOwed,
-  Loan,
-  FinancialReminder,
-  Bill,
-  Subscription,
-  EmergencyFund,
-  AppNotification,
+Alert,
+AlertHistory,
+Expense,
+Income,
+SavingsRecord,
+Investment,
+FinancialGoal,
+MonthlyFinancialSummary,
+MoneyOwed,
+Loan,
+FinancialReminder,
+Bill,
+Subscription,
+EmergencyFund,
+AppNotification,
 } from '../types';
-import { calculateDueDateStatus, formatINR } from './calculations';
+import { calculateDueDateStatus,formatINR } from './calculations';
 
 export interface AlertEvaluationContext {
   summary: MonthlyFinancialSummary;

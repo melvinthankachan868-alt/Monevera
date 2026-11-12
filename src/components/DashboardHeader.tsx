@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { formatMonthName } from '../utils/calculations';
 import { MoneyVaultLogo } from './MoneyVaultLogo';
 import {
-  ChevronLeft,
-  ChevronRight,
-  WifiOff,
-  Sparkles,
-  Bell,
-  Sun,
-  Moon,
+ChevronLeft,
+ChevronRight,
+WifiOff,
+Sparkles,
+Bell,
+Sun,
+Moon,
 } from 'lucide-react';
 import { AccountModal } from './AccountModal';
 

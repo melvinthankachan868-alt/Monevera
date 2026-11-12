@@ -1,20 +1,10 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { Loan, LoanType } from '../types';
-import { formatINR, calculateDueDateStatus, formatDisplayDate, toDateString } from '../utils/calculations';
+import { Loan,LoanType } from '../types';
+import { formatINR,calculateDueDateStatus,formatDisplayDate,toDateString } from '../utils/calculations';
 import {
-  CreditCard,
-  Plus,
-  Clock,
-  CheckCircle2,
-  Trash2,
-  Bell,
-  Calendar,
-  AlertCircle,
-  X,
-  History,
-  TrendingDown,
-  Percent,
+CreditCard,
+Plus,Trash2,X
 } from 'lucide-react';
 
 const LOAN_TYPES: LoanType[] = [

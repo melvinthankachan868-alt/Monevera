@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState,useEffect,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { SavingsRecord, SavingsType } from '../types';
-import { formatINR, toDateString } from '../utils/calculations';
-import { Wallet, X, Trash2, Calendar, CheckCircle2, ShieldCheck, Landmark } from 'lucide-react';
+import { SavingsRecord,SavingsType } from '../types';
+import { toDateString } from '../utils/calculations';
+import { Wallet,X,Trash2,CheckCircle2 } from 'lucide-react';
 
 interface SavingsDepositModalProps {
   isOpen: boolean;

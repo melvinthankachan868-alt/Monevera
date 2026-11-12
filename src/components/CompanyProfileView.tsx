@@ -1,31 +1,22 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import {
-  ArrowLeft,
-  Bookmark,
-  BookmarkCheck,
-  Scale,
-  Sparkles,
-  ExternalLink,
-  ShieldCheck,
-  AlertTriangle,
-  FileText,
-  TrendingUp,
-  BarChart3,
-  Layers,
-  PieChart,
-  HelpCircle,
-  Clock,
-  Building2,
-  CheckCircle2,
-  Calendar,
-  Gift,
-  Coins,
-  MessageSquare,
-  Percent,
+ArrowLeft,
+Bookmark,
+BookmarkCheck,
+Scale,
+Sparkles,ShieldCheck,
+AlertTriangle,TrendingUp,
+BarChart3,
+Layers,
+PieChart,CheckCircle2,
+Calendar,Coins,
+MessageSquare,LogIn
 } from 'lucide-react';
 import { useResearch } from '../context/ResearchContext';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatCrores, formatIndianCount } from '../utils/indianCurrencyFormatter';
+import { formatINR,formatCrores } from '../utils/indianCurrencyFormatter';
+import { AccountModal } from './AccountModal';
+import { SIGN_IN_PROMPT,SESSION_EXPIRED_MSG } from '../utils/aiErrorHelper';
 
 export const CompanyProfileView: React.FC = () => {
   const {
@@ -49,6 +40,7 @@ export const CompanyProfileView: React.FC = () => {
   >('financials');
 
   const [mikeReply, setMikeReply] = useState<string | null>(null);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
 
   if (isLoadingProfile) {
     return (
@@ -725,8 +717,18 @@ export const CompanyProfileView: React.FC = () => {
         </div>
 
         {mikeReply && (
-          <div className="p-4 rounded-2xl bg-[var(--mv-bg-secondary)] border border-[var(--mv-border)] text-xs text-[var(--mv-text-secondary)] whitespace-pre-line leading-relaxed">
-            {mikeReply}
+          <div className="p-4 rounded-2xl bg-[var(--mv-bg-secondary)] border border-[var(--mv-border)] text-xs text-[var(--mv-text-secondary)] space-y-3">
+            <div className="whitespace-pre-line leading-relaxed">{mikeReply}</div>
+            {(mikeReply === SIGN_IN_PROMPT || mikeReply === SESSION_EXPIRED_MSG) && (
+              <button
+                type="button"
+                onClick={() => setAccountModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--mv-primary)] text-slate-950 font-bold hover:brightness-110 transition-all cursor-pointer text-xs shadow-xs"
+              >
+                <LogIn size={13} />
+                <span>Sign In to Money Vault</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -763,6 +765,11 @@ export const CompanyProfileView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <AccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+      />
     </div>
   );
 };

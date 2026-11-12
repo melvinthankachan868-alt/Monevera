@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { MoneyOwed, MoneyOwedType, PaymentMethod } from '../types';
-import { formatINR, toDateString } from '../utils/calculations';
-import { X, User, Calendar, CreditCard, Plus, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { MoneyOwed,MoneyOwedType,PaymentMethod } from '../types';
+import { formatINR,toDateString } from '../utils/calculations';
+import { X,User,Plus,ArrowDownLeft,ArrowUpRight } from 'lucide-react';
 
 interface MoneyOwedModalProps {
   isOpen: boolean;

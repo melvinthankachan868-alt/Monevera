@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React,{ useState,useEffect,useRef } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { Bill, BillCategory, RecurringFrequency, PaymentMethod } from '../types';
-import { formatINR, toDateString } from '../utils/calculations';
-import { CalendarCheck, X, Trash2, Calendar, CheckCircle2, Repeat, Bell, CreditCard } from 'lucide-react';
+import { Bill,BillCategory,RecurringFrequency,PaymentMethod } from '../types';
+import { toDateString } from '../utils/calculations';
+import { CalendarCheck,X,Trash2,CheckCircle2 } from 'lucide-react';
 
 interface BillModalProps {
   isOpen: boolean;

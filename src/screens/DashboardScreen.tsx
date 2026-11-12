@@ -1,33 +1,23 @@
-import React, { useState, useMemo } from 'react';
+import React,{ useState,useMemo } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
-import { formatINR, formatDisplayDate, calculateDueDateStatus } from '../utils/calculations';
+import { formatINR,formatDisplayDate } from '../utils/calculations';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { MoneyOwedModal } from '../components/MoneyOwedModal';
+import { CurrencyDisplayRow } from '../components/CurrencyDisplayRow';
 import {
-  Wallet,
-  ArrowUpRight,
-  ArrowDownLeft,
-  ArrowDownRight,
-  TrendingUp,
-  ShieldCheck,
-  PiggyBank,
-  Target,
-  Sparkles,
-  AlertTriangle,
-  Clock,
-  ChevronRight,
-  CheckCircle2,
-  Calendar,
-  CreditCard,
-  Plus,
-  Receipt,
-  Layers,
-  ArrowRight,
-  Info,
-  DollarSign,
-  PieChart,
-  Camera,
-  Users,
+Wallet,
+ArrowUpRight,
+ArrowDownLeft,TrendingUp,
+ShieldCheck,
+PiggyBank,
+Target,
+Sparkles,
+AlertTriangle,
+Clock,
+ChevronRight,Calendar,
+CreditCard,
+Plus,
+Receipt,ArrowRight,Camera
 } from 'lucide-react';
 
 export const DashboardScreen: React.FC = () => {
@@ -350,6 +340,7 @@ export const DashboardScreen: React.FC = () => {
               <div className="text-xs sm:text-sm text-[var(--mv-text-secondary)] mt-1 font-medium">
                 Net Remaining Cash Available this Month
               </div>
+              <CurrencyDisplayRow baseAmountInr={netWorthSummary.netWorth} label="Net worth" />
             </div>
 
             {/* Quick Flow Ratio Pill */}

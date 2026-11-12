@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { DashboardHeader } from './DashboardHeader';
 import { AppNavigation } from './AppNavigation';

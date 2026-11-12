@@ -1,27 +1,19 @@
-import React, { useState } from 'react';
+import React,{ useState } from 'react';
 import { useFinTraQ } from '../context/FinTraQContext';
 import { MoneyVaultLogo } from '../components/MoneyVaultLogo';
 import {
-  ShieldCheck,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle2,
-  TrendingUp,
-  Receipt,
-  PiggyBank,
-  Wallet,
-  Sparkles,
-  CreditCard,
-  CalendarCheck,
-  PieChart,
-  FileText,
-  Lock,
-  Compass,
-  Layers,
-  ChevronRight,
-  Zap,
+ShieldCheck,
+ArrowRight,
+ArrowLeft,
+CheckCircle2,
+TrendingUp,
+Receipt,
+PiggyBank,
+Wallet,
+Sparkles,
+CreditCard,
+CalendarCheck
 } from 'lucide-react';
-import { formatINR } from '../utils/calculations';
 
 interface TourStep {
   id: number;

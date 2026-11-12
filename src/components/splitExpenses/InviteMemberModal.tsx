@@ -1,27 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import {
-  X,
-  Mail,
-  Phone,
-  Copy,
-  Check,
-  Send,
-  AlertCircle,
-  Clock,
-  ShieldCheck,
-  UserPlus,
-  RefreshCw,
-  Trash2,
-  ExternalLink,
-  Eye,
-  Share2,
-  CheckCircle2,
-  AlertTriangle,
+X,
+Mail,
+Phone,
+Copy,
+Check,
+Send,
+AlertCircle,UserPlus,
+RefreshCw,
+Trash2,
+ExternalLink,
+Eye,
+Share2,
+CheckCircle2,
+AlertTriangle
 } from 'lucide-react';
 import { useFinTraQ } from '../../context/FinTraQContext';
-import { SplitGroup, GroupInvitation } from '../../types/splitExpenses';
-import { InvitationDeliveryProvider, ProviderConfig } from '../../services/invitationDeliveryProvider';
-import { validateEmail, validatePhone } from '../../utils/invitationValidation';
+import { SplitGroup,GroupInvitation } from '../../types/splitExpenses';
+import { InvitationDeliveryProvider,ProviderConfig } from '../../services/invitationDeliveryProvider';
+import { validateEmail,validatePhone } from '../../utils/invitationValidation';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
